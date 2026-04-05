@@ -32,7 +32,7 @@ export default function RootLayout() {
             router.replace('/main');
         }
         SplashScreen.hideAsync();
-    }, [isLoggedIn, hasCompletedOnboarding, rootNavigationState?.key, segments, _hasHydrated, isLayoutMounted]);
+    }, [isLoggedIn, hasCompletedOnboarding, rootNavigationState?.key, _hasHydrated, isLayoutMounted]);
 
     return (
         <QueryClientProvider client={queryClient}>

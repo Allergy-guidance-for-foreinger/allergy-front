@@ -2,14 +2,15 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-interface AppState {
+type AppState = {
     isLoggedIn: boolean;
     language: string;
     school: string;
     allergies: string[];
     hasCompletedOnboarding: boolean;
     _hasHydrated: boolean;
-
+}
+type AppAction = {
     setLoggedIn: (status: boolean) => void;
     setLanguage: (lang: string) => void;
     setSchool: (school: string) => void;
@@ -18,7 +19,9 @@ interface AppState {
     setHasHydrated: (status: boolean) => void;
 }
 
-export const useAppStore = create<AppState>()(
+type AppStore = AppState & AppAction;
+
+export const useAppStore = create<AppStore>()(
     persist(
         (set) => ({
             isLoggedIn: false,
@@ -35,7 +38,7 @@ export const useAppStore = create<AppState>()(
             setHasHydrated: (status) => set({ _hasHydrated: status }),
         }),
         {
-            name: 'allergy-app-storage', // 기기에 저장될 파일명
+            name: 'app-storage-b', // 기기에 저장될 파일명
             storage: createJSONStorage(() => AsyncStorage), // AsyncStorage를 통해 영구 저장
             onRehydrateStorage: () => (state) => {
                 state?.setHasHydrated(true);

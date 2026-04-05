@@ -21,7 +21,12 @@ const ALLERGY_LIST = [
     { id: "spicy", icon: "🌶️", name: "매운 음식", nameEn: "Spicy Food" },
 ];
 
-export default function AllergyScreen() {
+interface AllergyProps {
+    buttonText: string;        // "다음" 또는 "저장 완료"
+    onPress: () => void;    // 버튼을 눌렀을 때 실행할 함수
+}
+
+export default function AllergyScreen({buttonText,onPress}:AllergyProps) {
     const { allergies, setAllergies, completeOnboarding } = useAppStore();
 
     const toggleAllergy = (icon: string) => {
@@ -60,18 +65,10 @@ export default function AllergyScreen() {
 
             <View className="flex-row bg-white px-5 pt-10 gap-x-6 justify-center">
                 <TouchableOpacity
-                    className="w-44 bg-black py-4 rounded-3xl items-center mb-5"
-                    onPress={() => router.back()}
-                >
-                    <Text className="text-white text-xl font-bold">이전으로</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
                     className="w-44 bg-pink-300 py-4 rounded-3xl items-center mb-5"
-                    onPress={() => {
-                        completeOnboarding();
-                    }}
+                    onPress={onPress}
                 >
-                    <Text className="text-white text-lg font-bold">온보딩 완료 </Text>
+                    <Text className="text-white text-lg font-bold">{buttonText} </Text>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>

@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react'; // 👈 useRef, useEffect 추가!
-import { Text, TouchableOpacity, View, ScrollView, Dimensions } from 'react-native'; // 👈 Dimensions 추가!
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { Text, TouchableOpacity, View, ScrollView, Dimensions } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import '../global.css';
@@ -9,7 +9,7 @@ const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
 export default function HomeScreen() {
     const scrollViewRef = useRef<ScrollView>(null);
-    const {isLoggedIn,setLoggedIn,hasCompletedOnboarding} = useAppStore();
+    const {isLoggedIn,setLoggedIn,hasCompletedOnboarding,allergies} = useAppStore();
     const today = new Date();
     const todayString:string = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     const [selectedDate, setSelectedDate] = useState(todayString);
@@ -58,7 +58,7 @@ export default function HomeScreen() {
             <View className="px-5 items-center mb-6">
                 <Text className="text-3xl font-bold text-gray-800 mb-3">오늘의 학식 메뉴 🍽️</Text>
                 <View className="bg-red-100 px-4 py-2 rounded-full">
-                    <Text className="text-red-600 font-semibold">현재 필터: </Text>
+                    <Text className="text-red-600 font-semibold">현재 필터: {allergies}</Text>
                 </View>
             </View>
 
@@ -108,7 +108,7 @@ export default function HomeScreen() {
                     className="bg-gray-200 py-4 rounded-xl items-center active:opacity-70"
                     onPress={() => {
                         setLoggedIn(false);
-                        console.log("isLoggedIn:",isLoggedIn);
+                        console.log("isLoggedIn:", isLoggedIn);
                     }}
                 >
                     <Text className="text-gray-700 text-lg font-bold">로그아웃</Text>

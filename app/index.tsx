@@ -32,7 +32,7 @@ export default function LoginScreen() {
     };
 
     return (
-        <SafeAreaView className="flex-1 justify-center items-center bg-red-50 px-20">
+        <SafeAreaView className="flex-1 justify-center items-center bg-white-200 px-20">
             <View className="items-center mb-16">
                 <Text className="text-4xl font-bold text-black-500 mb-2">Allergy Safe</Text>
                 <Text className="text-gray-600 text-lg">유학생을 위한 맞춤형 식단표</Text>
@@ -46,13 +46,6 @@ export default function LoginScreen() {
                 style={{ width: '100%', height: 50 }}
                 onPress={handleAppleLogin}
             />
-            <TouchableOpacity
-                className="w-44 bg-pink-300 py-4 rounded-3xl items-center mb-5"
-                onPress={() => {
-                    console.log(hasCompletedOnboarding)}}
-            >
-                <Text className="text-white text-lg font-bold">온보딩상태 </Text>
-            </TouchableOpacity>
 
         </SafeAreaView>
     );
