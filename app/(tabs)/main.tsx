@@ -1,21 +1,27 @@
-import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react'; // 🌟 useCallback 추가
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { Text, TouchableOpacity, View, ScrollView, Dimensions } from 'react-native';
-import { router, useFocusEffect } from 'expo-router'; // 🌟 useFocusEffect 추가
+import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import '../global.css';
 import { useAppStore } from "@/store/useAppStore";
-
+const ITEM_WIDTH = 80;
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
+const cafeterias = [{name: '힉생식당',id:'a1'},{name: '교직원식당',id:'b2'},{name: '분식당',id:'c3'}];
 
 export default function HomeScreen() {
-    const scrollViewRef = useRef<ScrollView>(null);
-    const { hasCompletedOnboarding, allergies } = useAppStore();
-    const today = new Date();
-    const todayString: string = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    const [selectedDate, setSelectedDate] = useState(todayString);
+    const allergies  = useAppStore(state => state.allergies);
 
+    const dateScrollRef = useRef<ScrollView>(null);
+    const cafeteriaRef = useRef<ScrollView>(null);
+
+    const today = new Date();
+    const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+    const [selectedDate, setSelectedDate] = useState(todayString);
+    const [selectedCafeteria, setSelectedCafeteria] = useState('a1');
+
+    // 날짜 계산 로직
     const weekDates = useMemo(() => {
-        // ... (기존 weekDates 로직 동일) ...
         const dates = [];
         const currentDay = today.getDay();
         const diffToMonday = currentDay === 0 ? -6 : 1 - currentDay;
@@ -38,33 +44,46 @@ export default function HomeScreen() {
         return dates;
     }, []);
 
-    // 🌟 핵심: 화면이 포커스될 때마다 실행되는 특수 훅!
+    // 메인으로 복귀 시 로직
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     useFocusEffect(
         useCallback(() => {
-            // 1. 유저가 탭에 다시 들어오면 무조건 날짜를 '오늘'로 강제 초기화합니다.
             setSelectedDate(todayString);
-
-            // 2. 스크롤 위치도 '오늘' 날짜가 가운데 오도록 스르륵 원상복구 시켜줍니다. (최고의 UX!)
             const todayIndex = weekDates.findIndex(item => item.id === todayString);
+
             if (todayIndex >= 3) {
-                setTimeout(() => {
+                timerRef.current = setTimeout(() => {
                     const screenWidth = Dimensions.get('window').width;
-                    const itemWidth = 75;
+                    const itemWidth = 90;
                     const offset = (todayIndex * itemWidth) - (screenWidth / 2) + (itemWidth / 2) + 20;
-                    scrollViewRef.current?.scrollTo({
-                        x: offset,
-                        animated: true,
-                    });
+                    dateScrollRef.current?.scrollTo({ x: offset, animated: true });
                 }, 100);
             }
-
-            // 클린업 함수 (포커스를 잃고 다른 탭으로 떠날 때 실행됨 - 여기선 비워둬도 무방)
-            return () => {};
+            return () => {
+                if (timerRef.current) {
+                    clearTimeout(timerRef.current);
+                }
+            };
         }, [todayString, weekDates])
-        // 💡 주의: useFocusEffect 안에는 무조건 useCallback을 감싸서 써야 무한 루프에 빠지지 않습니다!
     );
 
-    // (기존에 있던 useEffect 스크롤 로직은 useFocusEffect 안으로 이사 갔으므로 삭제하셔도 됩니다!)
+    // 날짜 선택 시 실행 함수
+    const handleDatePress = (newDateId: string) => {
+
+        const newIndex = weekDates.findIndex(item => item.id === newDateId);
+
+        const screenWidth = Dimensions.get('window').width;
+        const itemWidth = 90;
+        const gap = 10;
+        const totalWidth = itemWidth + gap;
+        const offset = (newIndex * totalWidth) - (screenWidth / 2) + (itemWidth / 2) + 20;
+
+        dateScrollRef.current?.scrollTo({
+            x: offset,
+            animated: true,
+        });
+        setSelectedDate(newDateId);
+    };
 
     return (
         <SafeAreaView className="flex-1 bg-white pt-5">
@@ -75,9 +94,10 @@ export default function HomeScreen() {
                 </View>
             </View>
 
+            {/*날짜 선택 스크롤*/}
             <View className="mb-6">
                 <ScrollView
-                    ref={scrollViewRef}
+                    ref={dateScrollRef}
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }}
@@ -89,14 +109,15 @@ export default function HomeScreen() {
                         return (
                             <TouchableOpacity
                                 key={item.id}
-                                onPress={() => setSelectedDate(item.id)}
-                                className={`items-center justify-center py-3 px-5 rounded-2xl border-2 ${
+                                onPress={() => handleDatePress(item.id)}
+                                className={`items-center justify-center py-1 rounded-2xl border-2 ${
                                     isSelected
                                         ? 'border-black bg-black'
                                         : 'border-gray-200 bg-white'
                                 }`}
+                                style={{ width: ITEM_WIDTH }}
                             >
-                                <Text className={`text-sm font-medium mb-1 ${isSelected ? 'text-gray-300' : 'text-gray-500'}`}>
+                                <Text className={`text-lg font-semibold mb-1 ${isSelected ? 'text-gray-300' : 'text-gray-500'}`}>
                                     {item.dayName}
                                 </Text>
                                 <Text className={`text-lg font-bold ${isSelected ? 'text-white' : 'text-gray-800'}`}>
@@ -111,8 +132,39 @@ export default function HomeScreen() {
                 </ScrollView>
             </View>
 
+            {/*식당 선택 스크롤*/}
+            <View className="mb-6">
+                <ScrollView
+                    ref={cafeteriaRef}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }}
+                >
+                    {cafeterias.map((item) => {
+                        const isSelected = selectedCafeteria=== item.id;
+
+                        return (
+                            <TouchableOpacity
+                                key={item.id}
+                                className={`items-center justify-center py-3 px-5 rounded-2xl border-2 ${
+                                    isSelected
+                                        ? 'border-black bg-black'
+                                        : 'border-gray-200 bg-white'
+                                }`}
+                                onPress={() => setSelectedCafeteria(item.id)}
+                            >
+
+                                <Text className={`text-lg font-bold ${isSelected ? 'text-white' : 'text-gray-800'}`}>
+                                    {item.name}
+                                </Text>
+                            </TouchableOpacity>
+                        );
+                    })}
+                </ScrollView>
+            </View>
             <View className="flex-1 px-5 justify-center items-center">
                 <Text className="text-gray-400">선택된 날짜: {selectedDate}</Text>
+                <Text className="text-gray-400">선택된 식당: {selectedCafeteria}</Text>
             </View>
         </SafeAreaView>
     );
