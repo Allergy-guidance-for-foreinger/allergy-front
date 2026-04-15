@@ -40,6 +40,12 @@ export const useAppStore = create<AppStore>()(
         {
             name: 'app-storage-b', // 기기에 저장될 파일명
             storage: createJSONStorage(() => AsyncStorage), // AsyncStorage를 통해 영구 저장
+            partialize: (state) => ({
+                language: state.language,
+                school: state.school,
+                allergies: state.allergies,
+                hasCompletedOnboarding: state.hasCompletedOnboarding,
+            }),
             onRehydrateStorage: () => (state) => {
                 state?.setHasHydrated(true);
             },
