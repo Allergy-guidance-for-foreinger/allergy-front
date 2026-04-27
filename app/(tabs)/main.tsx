@@ -1,24 +1,23 @@
-import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { Text, TouchableOpacity, View, ScrollView, Dimensions } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import '../global.css';
 import { useAppStore } from "@/store/useAppStore";
+import { cafeterias, mealLabels, mockMenuByWeekday, Weekday, CafeteriaId, MealKey } from '@/data/mockMenu';
 const ITEM_WIDTH = 80;
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
-const cafeterias = [{name: '힉생식당',id:'a1'},{name: '교직원식당',id:'b2'},{name: '분식당',id:'c3'}];
 
 export default function HomeScreen() {
     const allergies  = useAppStore(state => state.allergies);
 
     const dateScrollRef = useRef<ScrollView>(null);
-    const cafeteriaRef = useRef<ScrollView>(null);
 
-    const today = new Date();
+    const today = useMemo(() => new Date(), []);
     const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
     const [selectedDate, setSelectedDate] = useState(todayString);
-    const [selectedCafeteria, setSelectedCafeteria] = useState('a1');
+    const [selectedCafeteria, setSelectedCafeteria] = useState<CafeteriaId>('a1');
 
     // 날짜 계산 로직
     const weekDates = useMemo(() => {
@@ -42,7 +41,20 @@ export default function HomeScreen() {
             });
         }
         return dates;
-    }, []);
+    }, [today]);
+
+    const selectedDayName = useMemo(() => {
+        return weekDates.find((item) => item.id === selectedDate)?.dayName as Weekday | undefined;
+    }, [selectedDate, weekDates]);
+
+    const selectedCafeteriaName = useMemo(() => {
+        return cafeterias.find((item) => item.id === selectedCafeteria)?.name ?? '';
+    }, [selectedCafeteria]);
+
+    const selectedMenu = useMemo(() => {
+        if (!selectedDayName) return null;
+        return mockMenuByWeekday[selectedDayName]?.[selectedCafeteria] ?? null;
+    }, [selectedCafeteria, selectedDayName]);
 
     // 메인으로 복귀 시 로직
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -50,8 +62,7 @@ export default function HomeScreen() {
         useCallback(() => {
             setSelectedDate(todayString);
             const todayIndex = weekDates.findIndex(item => item.id === todayString);
-
-            if (todayIndex >= 3) {
+            if (todayIndex >= 0) {
                 timerRef.current = setTimeout(() => {
                     const screenWidth = Dimensions.get('window').width;
                     const itemWidth = 90;
@@ -59,6 +70,7 @@ export default function HomeScreen() {
                     dateScrollRef.current?.scrollTo({ x: offset, animated: true });
                 }, 100);
             }
+
             return () => {
                 if (timerRef.current) {
                     clearTimeout(timerRef.current);
@@ -67,9 +79,7 @@ export default function HomeScreen() {
         }, [todayString, weekDates])
     );
 
-    // 날짜 선택 시 실행 함수
     const handleDatePress = (newDateId: string) => {
-
         const newIndex = weekDates.findIndex(item => item.id === newDateId);
 
         const screenWidth = Dimensions.get('window').width;
@@ -90,21 +100,20 @@ export default function HomeScreen() {
             <View className="px-5 items-center mb-6">
                 <Text className="text-3xl font-bold text-gray-800 mb-3">오늘의 학식 메뉴 🍽️</Text>
                 <View className="bg-red-100 px-4 py-2 rounded-full">
-                    <Text className="text-red-600 font-semibold">현재 필터: {allergies}</Text>
+                    <Text className="text-red-600 font-semibold">현재 필터: {allergies.join(', ') || '없음'}</Text>
                 </View>
             </View>
 
-            {/*날짜 선택 스크롤*/}
             <View className="mb-6">
                 <ScrollView
                     ref={dateScrollRef}
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }}
-                >
-                    {weekDates.map((item) => {
-                        const isSelected = selectedDate === item.id;
-                        const isToday = item.id === todayString;
+                    >
+                        {weekDates.map((item) => {
+                            const isSelected = selectedDate === item.id;
+                            const isToday = item.id === todayString;
 
                         return (
                             <TouchableOpacity
@@ -129,13 +138,11 @@ export default function HomeScreen() {
                             </TouchableOpacity>
                         );
                     })}
-                </ScrollView>
+                    </ScrollView>
             </View>
 
-            {/*식당 선택 스크롤*/}
             <View className="mb-6">
                 <ScrollView
-                    ref={cafeteriaRef}
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }}
@@ -160,12 +167,57 @@ export default function HomeScreen() {
                             </TouchableOpacity>
                         );
                     })}
-                </ScrollView>
+                    </ScrollView>
             </View>
-            <View className="flex-1 px-5 justify-center items-center">
-                <Text className="text-gray-400">선택된 날짜: {selectedDate}</Text>
-                <Text className="text-gray-400">선택된 식당: {selectedCafeteria}</Text>
-            </View>
+
+            <ScrollView className="flex-1 px-5" contentContainerStyle={{ paddingBottom: 24 }}>
+                <View className="mb-4 rounded-3xl bg-gray-50 px-5 py-4">
+                    <Text className="text-lg font-bold text-gray-900">선택된 날짜</Text>
+                    <Text className="text-gray-600 mt-1">{selectedDate}</Text>
+                    <Text className="text-lg font-bold text-gray-900 mt-4">선택된 식당</Text>
+                    <Text className="text-gray-600 mt-1">{selectedCafeteriaName}</Text>
+                </View>
+
+                {selectedMenu ? (
+                    <View className="gap-4">
+                        {mealLabels.map((meal) => (
+                            <TouchableOpacity
+                                key={meal.key}
+                                className="rounded-3xl border border-gray-200 bg-white px-5 py-4 active:bg-gray-50"
+                                onPress={() =>
+                                    router.push({
+                                        pathname: '/meal-detail',
+                                        params: {
+                                            date: selectedDate,
+                                            cafeteria: selectedCafeteria,
+                                            meal: meal.key as MealKey,
+                                        },
+                                    })
+                                }
+                            >
+                                <View className="flex-row items-center justify-between mb-3">
+                                    <Text className="text-xl font-bold text-gray-900">{meal.label}</Text>
+                                    <Text className="text-sm font-semibold text-gray-400">상세보기</Text>
+                                </View>
+                                <View className="gap-2">
+                                    {selectedMenu[meal.key].slice(0, 3).map((item) => (
+                                        <View key={item} className="rounded-2xl bg-gray-50 px-4 py-3">
+                                            <Text className="text-base text-gray-700">{item}</Text>
+                                        </View>
+                                    ))}
+                                    {selectedMenu[meal.key].length > 3 ? (
+                                        <Text className="text-sm text-gray-400">외 {selectedMenu[meal.key].length - 3}개</Text>
+                                    ) : null}
+                                </View>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                ) : (
+                    <View className="rounded-3xl border border-dashed border-gray-300 bg-gray-50 px-5 py-10 items-center">
+                        <Text className="text-gray-500 text-base">선택한 날짜와 식당의 더미 데이터가 없습니다.</Text>
+                    </View>
+                )}
+            </ScrollView>
         </SafeAreaView>
     );
 }

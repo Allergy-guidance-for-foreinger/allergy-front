@@ -51,11 +51,12 @@ export default function RootLayout() {
         const inAuthGroup = segments[0] === 'onboarding';
         const inTabsGroup = segments[0] === '(tabs)' || segments[0] === 'main';
         const inSettingsGroup = segments[0] === 'settings';
+        const inMealDetailGroup = segments[0] === 'meal-detail';
         if (!isLoggedIn && segments.length > 0) {
             router.replace('/');
         } else if (isLoggedIn && !hasCompletedOnboarding && !inAuthGroup) {
             router.replace('/onboarding/language');
-        } else if (isLoggedIn && hasCompletedOnboarding && !inTabsGroup && !inSettingsGroup) {
+        } else if (isLoggedIn && hasCompletedOnboarding && !inTabsGroup && !inSettingsGroup && !inMealDetailGroup) {
             router.replace('/main');
         }
 
@@ -70,6 +71,7 @@ export default function RootLayout() {
                 <Stack.Screen name="index" />
                 <Stack.Screen name="onboarding" />
                 <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="meal-detail" options={{ animation: 'slide_from_right' }} />
             </Stack>
         </QueryClientProvider>
     );

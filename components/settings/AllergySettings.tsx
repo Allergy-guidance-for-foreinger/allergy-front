@@ -22,7 +22,7 @@ export default function AllergySettings({
         }
     };
     return (
-        <View className="px-5 pt-10">
+        <View className="px-5 pt-10 ">
             <Text className="text-3xl font-bold text-red-500 mb-2">{title}</Text>
             <Text className="text-gray-600 text-lg mb-10">{subtitle}</Text>
 
