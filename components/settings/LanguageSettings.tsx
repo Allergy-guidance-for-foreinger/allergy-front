@@ -11,18 +11,20 @@ interface LanguageSettingsProps {
     title?: string;
     subtitle?: string;
     options?: LanguageOption[];
+    showHeader?: boolean;
 }
 
 const DEFAULT_OPTIONS: LanguageOption[] = [
     { code: 'en', label: 'English' },
     { code: 'ja', label: '日本語' },
-    { code: 'zh', label: '中文' },
+    { code: 'ko', label: '한국어' },
 ];
 
 export default function LanguageSettings({
     title = 'Language',
-    subtitle = '사용하실 언어를 선택해 주세요.',
+    subtitle = 'Select the language you want to use.',
     options = DEFAULT_OPTIONS,
+    showHeader = true,
 }: LanguageSettingsProps) {
     const language = useAppStore((state) => state.language);
     const setLanguage = useAppStore((state) => state.setLanguage);
@@ -38,8 +40,12 @@ export default function LanguageSettings({
 
     return (
         <View className="px-5 pt-10">
-            <Text className="text-3xl font-bold text-gray-900 mb-2">{title}</Text>
-            <Text className="text-gray-500 text-lg mb-10">{subtitle}</Text>
+            {showHeader ? (
+                <>
+                    <Text className="text-3xl font-bold text-gray-900 mb-2">{title}</Text>
+                    <Text className="text-gray-500 text-lg mb-10">{subtitle}</Text>
+                </>
+            ) : null}
 
             <View className="gap-y-4">
                 {options.map((lang) => (

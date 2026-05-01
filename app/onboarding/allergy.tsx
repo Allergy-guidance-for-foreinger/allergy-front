@@ -15,10 +15,10 @@ export default function AllergyScreen() {
             </ScrollView>
             <View className="flex-row bg-white px-5 pt-4 gap-x-4 justify-center">
                 <ActionButton className="mb-5" onPress={() => router.back()}>
-                    이전으로
+                    Back
                 </ActionButton>
                 <ActionButton className="mb-5" onPress={() => completeOnboarding()}>
-                    온보딩 완료
+                    Finish Onboarding
                 </ActionButton>
             </View>
         </SafeAreaView>

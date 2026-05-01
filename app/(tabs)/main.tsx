@@ -5,10 +5,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import '../global.css';
 import { useAppStore } from '@/store/useAppStore';
-import { ALLERGY_LIST } from '@/constants/allergyList';
-import { cafeterias, getMenuItemDetail, mealLabels, mockMenuByWeekday, Weekday, CafeteriaId, MealKey } from '@/data/mockMenu';
+import { ALLERGY_LIST, normalizeAllergyValue } from '@/constants/allergyList';
+import { cafeterias, getMenuItemDetail, mealLabels, mockMenuByWeekday, translateMenuItem, Weekday, CafeteriaId, MealKey } from '@/data/mockMenu';
 const ITEM_WIDTH = 80;
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
+const DISPLAY_DAY_NAMES: Record<string, string> = {
+    일: 'Sun',
+    월: 'Mon',
+    화: 'Tue',
+    수: 'Wed',
+    목: 'Thu',
+    금: 'Fri',
+    토: 'Sat',
+};
 
 type DisplayedAllergy = {
     key: string;
@@ -18,6 +27,10 @@ type DisplayedAllergy = {
 
 export default function HomeScreen() {
     const allergies  = useAppStore(state => state.allergies);
+    const normalizedAllergies = useMemo(
+        () => Array.from(new Set(allergies.map((allergy) => normalizeAllergyValue(allergy)))),
+        [allergies]
+    );
 
     const dateScrollRef = useRef<ScrollView>(null);
 
@@ -65,16 +78,16 @@ export default function HomeScreen() {
     }, [selectedCafeteria, selectedDayName]);
 
     const displayedAllergies: DisplayedAllergy[] = useMemo(() => {
-        return allergies.map((allergy) => {
-            const preset = ALLERGY_LIST.find((item) => item.icon === allergy);
+        return normalizedAllergies.map((normalizedAllergy) => {
+            const preset = ALLERGY_LIST.find((item) => item.label === normalizedAllergy);
 
             return {
-                key: allergy,
-                label: preset ? `${preset.icon} ${preset.name}` : allergy,
-                keywords: preset ? [preset.name, preset.nameEn] : [allergy],
+                key: normalizedAllergy,
+                label: preset ? preset.label : normalizedAllergy,
+                keywords: preset ? preset.keywords : [normalizedAllergy],
             };
         });
-    }, [allergies]);
+    }, [normalizedAllergies]);
 
     // 메인으로 복귀 시 로직
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -118,9 +131,9 @@ export default function HomeScreen() {
     return (
         <SafeAreaView className="flex-1 bg-white pt-5">
             <View className="px-5 items-center mb-6">
-                <Text className="text-3xl font-bold text-gray-800 mb-3">오늘의 학식 메뉴 🍽️</Text>
+                <Text className="text-3xl font-bold text-gray-800 mb-3">Today&apos;s Campus Menu 🍽️</Text>
                 <View className="bg-red-100 px-4 py-2 rounded-full">
-                    <Text className="text-red-600 font-semibold">현재 필터: {allergies.join(', ') || '없음'}</Text>
+                    <Text className="text-red-600 font-semibold">Current filter: {normalizedAllergies.join(', ') || 'None'}</Text>
                 </View>
             </View>
 
@@ -145,9 +158,9 @@ export default function HomeScreen() {
                                         : 'border-gray-200 bg-white'
                                 }`}
                                 style={{ width: ITEM_WIDTH }}
-                            >
+                                >
                                 <Text className={`text-lg font-semibold mb-1 ${isSelected ? 'text-gray-300' : 'text-gray-500'}`}>
-                                    {item.dayName}
+                                    {DISPLAY_DAY_NAMES[item.dayName]}
                                 </Text>
                                 <Text className={`text-lg font-bold ${isSelected ? 'text-white' : 'text-gray-800'}`}>
                                     {item.displayDate}
@@ -191,12 +204,6 @@ export default function HomeScreen() {
             </View>
 
             <ScrollView className="flex-1 px-5" contentContainerStyle={{ paddingBottom: 24 }}>
-                <View className="mb-4 rounded-3xl bg-gray-50 px-5 py-4">
-                    <Text className="text-lg font-bold text-gray-900">선택된 날짜</Text>
-                    <Text className="text-gray-600 mt-1">{selectedDate}</Text>
-                    <Text className="text-lg font-bold text-gray-900 mt-4">선택된 식당</Text>
-                    <Text className="text-gray-600 mt-1">{selectedCafeteriaName}</Text>
-                </View>
 
                 {selectedMenu ? (
                     <View className="gap-4">
@@ -217,11 +224,12 @@ export default function HomeScreen() {
                             >
                                 <View className="flex-row items-center justify-between mb-3">
                                     <Text className="text-xl font-bold text-gray-900">{meal.label}</Text>
-                                    <Text className="text-sm font-semibold text-gray-400">상세보기</Text>
+                                    <Text className="text-sm font-semibold text-gray-400">Details</Text>
                                 </View>
                                 <View className="gap-2">
                                     {selectedMenu[meal.key].map((item) => {
                                         const detail = getMenuItemDetail(item);
+                                        const displayName = translateMenuItem(item);
                                         const hasAllergyMatch = detail.ingredients.some((ingredient) =>
                                             displayedAllergies.some((allergy) =>
                                                 allergy.keywords.some((keyword) => {
@@ -237,7 +245,7 @@ export default function HomeScreen() {
                                                 key={item}
                                                 className="rounded-2xl bg-gray-50 px-4 py-3 flex-row items-center justify-between"
                                             >
-                                                <Text className="text-base text-gray-700 flex-1 pr-3">{item}</Text>
+                                                <Text className="text-base text-gray-700 flex-1 pr-3">{displayName}</Text>
                                                 <Ionicons
                                                     name={hasAllergyMatch ? 'alert-circle' : 'checkmark-circle'}
                                                     size={20}
@@ -252,7 +260,7 @@ export default function HomeScreen() {
                     </View>
                 ) : (
                     <View className="rounded-3xl border border-dashed border-gray-300 bg-gray-50 px-5 py-10 items-center">
-                        <Text className="text-gray-500 text-base">선택한 날짜와 식당의 더미 데이터가 없습니다.</Text>
+                        <Text className="text-gray-500 text-base">No mock data is available for the selected date and cafeteria.</Text>
                     </View>
                 )}
             </ScrollView>

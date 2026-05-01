@@ -3,7 +3,12 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppStore } from '../../store/useAppStore';
 
-const SCHOOLS = ['금오공과대학교', '서울대학교', '부산대학교', '경북대학교'];
+const SCHOOLS = [
+    'Kumoh National Institute of Technology',
+    'Seoul National University',
+    'Pusan National University',
+    'Kyungpook National University',
+];
 
 export default function SchoolScreen() {
     const school = useAppStore((state) => state.school);
@@ -13,7 +18,7 @@ export default function SchoolScreen() {
         <SafeAreaView className="flex-1 bg-white px-5 pt-10">
             <View className="flex-1">
                 <Text className="text-3xl font-bold text-gray-900 mb-2">University</Text>
-                <Text className="text-gray-500 text-lg mb-10">다니고 계신 대학교를 선택해 주세요.</Text>
+                <Text className="text-gray-500 text-lg mb-10">Select the university you attend.</Text>
 
                 <View className="flex-row flex-wrap gap-3">
                     {SCHOOLS.map((s) => (
@@ -38,7 +43,7 @@ export default function SchoolScreen() {
                     className="flex-1 bg-gray-200 py-4 rounded-xl items-center"
                     onPress={() => router.back()}
                 >
-                    <Text className="text-gray-700 text-lg font-bold">뒤로</Text>
+                    <Text className="text-gray-700 text-lg font-bold">Back</Text>
                 </TouchableOpacity>
 
                 {/* 학교가 선택되어야만 넘어갈 수 있게 막아둡니다 */}
@@ -47,7 +52,7 @@ export default function SchoolScreen() {
                     disabled={!school}
                     onPress={() => router.push('/onboarding/allergy' as any)}
                 >
-                    <Text className="text-white text-lg font-bold">다음으로</Text>
+                    <Text className="text-white text-lg font-bold">Next</Text>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>

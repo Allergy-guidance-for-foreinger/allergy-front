@@ -14,7 +14,7 @@ export default function TabsLayout() {
             <Tabs.Screen
                 name="main"
                 options={{
-                    title: '식단표', // 탭 바  글자
+                    title: 'Menu',
                     // color  Active/Inactive 색상을 자동으로 받음
                     tabBarIcon: ({ color }) => (
                         <Ionicons name="fast-food-outline" size={24} color={color} />
@@ -26,7 +26,7 @@ export default function TabsLayout() {
             <Tabs.Screen
                 name="settings"
                 options={{
-                    title: '설정',
+                    title: 'Settings',
                     tabBarIcon: ({ color }) => (
                         <Ionicons name="settings-outline" size={24} color={color} />
                     ),

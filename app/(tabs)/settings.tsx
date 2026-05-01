@@ -6,8 +6,8 @@ import React from "react";
 import {useAppStore} from "@/store/useAppStore";
 import { ActionButton } from '@/components/ui/action-button';
 const SETTINGS_MENU = [
-    { id: 'allergy', title: '알러지 설정', icon: 'shield-checkmark-outline', path: '/settings/allergy' },
-    { id: 'language', title: '언어 설정', icon: 'language-outline', path: '/settings/language' },
+    { id: 'allergy', title: 'Allergy Settings', icon: 'shield-checkmark-outline', path: '/settings/allergy' },
+    { id: 'language', title: 'Language Settings', icon: 'language-outline', path: '/settings/language' },
 ];
 
 export default function SettingsScreen() {
@@ -15,7 +15,7 @@ export default function SettingsScreen() {
     return (
         <SafeAreaView className="flex-1 bg-white">
             <View className="px-5 py-6">
-                <Text className="text-2xl font-bold text-gray-800 mb-8">설정</Text>
+                <Text className="text-2xl font-bold text-gray-800 mb-8">Settings</Text>
 
                 <ScrollView className="space-y-4">
                     {SETTINGS_MENU.map((menu) => (
@@ -35,7 +35,7 @@ export default function SettingsScreen() {
             </View>
             <View className="px-5 pb-5 items-center">
                 <ActionButton onPress={() => setLoggedIn(false)}>
-                    로그아웃
+                    Log Out
                 </ActionButton>
             </View>
         </SafeAreaView>

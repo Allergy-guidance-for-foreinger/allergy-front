@@ -7,13 +7,13 @@ import { ActionButton } from '../../components/ui/action-button';
 export default function LanguageScreen() {
     return (
         <SafeAreaView className="flex-1 bg-white">
-            <LanguageSettings title="Welcome!" subtitle="사용하실 언어를 선택해 주세요." />
+            <LanguageSettings title="Welcome!" subtitle="Select the language you want to use." />
             <View className="flex-row bg-white px-5 pt-10 gap-x-4 justify-center">
                 <ActionButton className="mb-5" onPress={() => router.back()}>
-                    이전으로
+                    Back
                 </ActionButton>
                 <ActionButton className="mb-5" onPress={() => router.push('/onboarding/allergy' as any)}>
-                    다음으로
+                    Next
                 </ActionButton>
             </View>
         </SafeAreaView>

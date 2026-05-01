@@ -1,65 +1,75 @@
 import { useMemo, useState } from 'react';
 import { Text, View, TouchableOpacity, TextInput } from 'react-native';
 import { useAppStore } from '../../store/useAppStore';
-import { ALLERGY_LIST } from '@/constants/allergyList';
+import { ALLERGY_LIST, normalizeAllergyValue } from '@/constants/allergyList';
 
 interface AllergySettingsProps {
     title?: string;
     subtitle?: string;
+    showHeader?: boolean;
 }
 
 export default function AllergySettings({
     title = 'Allergies',
-    subtitle = '피해야 할 식재료를 모두 골라주세요.',
+    subtitle = 'Select every ingredient you need to avoid.',
+    showHeader = true,
 }: AllergySettingsProps) {
     const allergies = useAppStore((state) => state.allergies);
     const setAllergies = useAppStore((state) => state.setAllergies);
     const [customAllergyInput, setCustomAllergyInput] = useState('');
-
-    const presetAllergySet = useMemo(() => new Set(ALLERGY_LIST.map((allergy) => allergy.icon)), []);
-    const customAllergies = useMemo(
-        () => allergies.filter((allergy) => !presetAllergySet.has(allergy)),
-        [allergies, presetAllergySet]
+    const normalizedAllergies = useMemo(
+        () => Array.from(new Set(allergies.map((allergy) => normalizeAllergyValue(allergy)))),
+        [allergies]
     );
 
-    const toggleAllergy = (selectedIcon: string) => {
-        if (allergies.includes(selectedIcon)) {
-            setAllergies(allergies.filter((a) => a !== selectedIcon));
+    const presetAllergySet = useMemo(() => new Set(ALLERGY_LIST.map((allergy) => allergy.label)), []);
+    const customAllergies = useMemo(
+        () => normalizedAllergies.filter((allergy) => !presetAllergySet.has(allergy)),
+        [normalizedAllergies, presetAllergySet]
+    );
+
+    const toggleAllergy = (selectedLabel: string) => {
+        if (normalizedAllergies.includes(selectedLabel)) {
+            setAllergies(normalizedAllergies.filter((a) => a !== selectedLabel));
         } else {
-            setAllergies([...allergies, selectedIcon]);
+            setAllergies([...normalizedAllergies, selectedLabel]);
         }
     };
 
     const handleAddCustomAllergy = () => {
         const nextAllergy = customAllergyInput.trim();
 
-        if (!nextAllergy || allergies.includes(nextAllergy)) {
+        if (!nextAllergy || normalizedAllergies.includes(nextAllergy)) {
             setCustomAllergyInput('');
             return;
         }
 
-        setAllergies([...allergies, nextAllergy]);
+        setAllergies([...normalizedAllergies, nextAllergy]);
         setCustomAllergyInput('');
     };
 
     return (
         <View className="px-5 pt-10 ">
-            <Text className="text-3xl font-bold text-red-500 mb-2">{title}</Text>
-            <Text className="text-gray-600 text-lg mb-10">{subtitle}</Text>
+            {showHeader ? (
+                <>
+                    <Text className="text-3xl font-bold text-red-500 mb-2">{title}</Text>
+                    <Text className="text-gray-600 text-lg mb-10">{subtitle}</Text>
+                </>
+            ) : null}
 
             <View className="flex-row flex-wrap gap-x-3 gap-y-3 mb-2">
                 {ALLERGY_LIST.map((allergy) => {
-                    const isSelected = allergies.includes(allergy.icon);
+                    const isSelected = normalizedAllergies.includes(allergy.label);
                     return (
                         <TouchableOpacity
-                            key={allergy.icon}
+                            key={allergy.id}
                             className={`w-[31%] min-h-[54px] flex-row items-center justify-center px-3 py-2 rounded-2xl border-2 ${
                                 isSelected ? 'border-red-500 bg-red-50' : 'border-gray-200 bg-white'
                             }`}
-                            onPress={() => toggleAllergy(allergy.icon)}
+                            onPress={() => toggleAllergy(allergy.label)}
                         >
-                            <Text className={`text-[15px] font-medium ${isSelected ? 'text-red-600' : 'text-gray-700'}`}>
-                                {allergy.icon} {allergy.name}
+                            <Text className={`text-[15px] font-medium text-center ${isSelected ? 'text-red-600' : 'text-gray-700'}`}>
+                                {allergy.label}
                             </Text>
                         </TouchableOpacity>
                     );
@@ -68,16 +78,14 @@ export default function AllergySettings({
             </View>
 
             <View className="mt-10">
-                <Text className="text-lg font-bold text-gray-900 mb-2">직접 등록</Text>
-                <Text className="text-sm text-gray-500 mb-2">
-                    알러지를 직접 입력해서 추가할 수 있어요.
-                </Text>
+                <Text className="text-lg font-bold text-gray-900 mb-2">Custom Allergy</Text>
+                <Text className="text-sm text-gray-500 mb-2">You can type an allergy name to add it directly.</Text>
 
                 <View className="flex-row items-center gap-2">
                     <TextInput
                         value={customAllergyInput}
                         onChangeText={setCustomAllergyInput}
-                        placeholder="예: 사과, 복숭아"
+                        placeholder="e.g. Apple, Peach"
                         autoCapitalize="none"
                         className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-gray-900"
                         returnKeyType="done"
@@ -87,16 +95,16 @@ export default function AllergySettings({
                         className="rounded-2xl bg-black px-4 py-3"
                         onPress={handleAddCustomAllergy}
                     >
-                        <Text className="text-white font-bold">등록</Text>
+                        <Text className="text-white font-bold">Add</Text>
                     </TouchableOpacity>
                 </View>
 
                 {customAllergies.length > 0 ? (
                     <View className="mt-4">
-                        <Text className="text-sm font-semibold text-gray-500 mb-2">등록된 알러지</Text>
+                        <Text className="text-sm font-semibold text-gray-500 mb-2">Saved Allergies</Text>
                         <View className="flex-row flex-wrap gap-3">
                             {customAllergies.map((allergy) => {
-                                const isSelected = allergies.includes(allergy);
+                                const isSelected = normalizedAllergies.includes(allergy);
 
                                 return (
                                     <TouchableOpacity

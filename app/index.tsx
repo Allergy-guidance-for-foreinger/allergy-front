@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Text, View, Alert, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin'; // 구글 로그인
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { useAppStore } from "@/store/useAppStore";
 import './global.css';
 import {loginWithGoogleToken} from "@/api/auth";
@@ -23,17 +23,17 @@ export default function LoginScreen() {
             const idToken = userInfo?.data?.idToken;
 
             if (idToken) {
-                console.log('구글 id 토큰 발급 완료, 서버로 전송');
+                console.log('Google ID token acquired, sending to server');
                 await loginWithGoogleToken(idToken);
                 setLoggedIn(true);
             }
         } catch (error: any) {
             if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-                console.log('유저가 로그인 창을 닫았습니다.');
+                console.log('The user closed the sign-in window.');
             }
             else {
-                Alert.alert('로그인 실패', error.message || '처리 중 오류가 발생했습니다.');
-                console.error('로그인 에러:', error);
+                Alert.alert('Sign-in failed', error.message || 'An error occurred while processing the request.');
+                console.error('Sign-in error:', error);
             }
         }
     };
@@ -64,7 +64,7 @@ export default function LoginScreen() {
         <SafeAreaView className="flex-1 justify-center items-center bg-white px-8">
             <View className="items-center mb-16">
                 <Text className="text-4xl font-bold text-gray-900 mb-2">Allergy Safe</Text>
-                <Text className="text-gray-500 text-lg">유학생을 위한 맞춤형 식단표</Text>
+                <Text className="text-gray-500 text-lg">A personalized meal menu for international students</Text>
             </View>
 
             <View className="w-3/5 gap-4">
@@ -82,17 +82,14 @@ export default function LoginScreen() {
                     onPress={handleGoogleLogin}
                     className="w-full h-[50px] bg-white border border-gray-300 rounded-2xl flex-row justify-center items-center active:bg-gray-400"
                 >
-                    <Text className="text-gray-900 font-semibold text-base">
-                        <Text className="text-gray-900 font-bold text-xl ">Google </Text>
-                        계정으로 시작하기
-                    </Text>
+                    <Text className="text-gray-900 font-semibold text-base">Continue with Google</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     onPress={()=>setLoggedIn(true)}
                     className="w-full h-[50px] bg-white border border-gray-300 rounded-2xl flex-row justify-center items-center active:bg-gray-400"
                 >
                     <Text className="text-gray-900 font-semibold text-base">
-                        그냥 들어가기 (개발용)
+                        Enter without sign-in (dev)
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -100,7 +97,7 @@ export default function LoginScreen() {
                     className="w-full h-[50px] bg-white border border-gray-300 rounded-2xl flex-row justify-center items-center active:bg-gray-400"
                 >
                     <Text className="text-gray-900 font-semibold text-base">
-                        온보딩 해제하기
+                        Skip onboarding
                     </Text>
                 </TouchableOpacity>
             </View>
