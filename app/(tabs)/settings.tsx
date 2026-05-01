@@ -4,9 +4,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import React from "react";
 import {useAppStore} from "@/store/useAppStore";
+import { ActionButton } from '@/components/ui/action-button';
 const SETTINGS_MENU = [
     { id: 'allergy', title: '알러지 설정', icon: 'shield-checkmark-outline', path: '/settings/allergy' },
-    { id: 'school', title: '학교 설정', icon: 'school-outline', path: '/settings/school' },
     { id: 'language', title: '언어 설정', icon: 'language-outline', path: '/settings/language' },
 ];
 
@@ -33,15 +33,10 @@ export default function SettingsScreen() {
                     ))}
                 </ScrollView>
             </View>
-            <View className="px-5 pb-5">
-                <TouchableOpacity
-                    className="bg-gray-200 py-4 rounded-xl items-center active:opacity-70"
-                    onPress={() => {
-                        setLoggedIn(false);
-                    }}
-                >
-                    <Text className="text-gray-700 text-lg font-bold">로그아웃</Text>
-                </TouchableOpacity>
+            <View className="px-5 pb-5 items-center">
+                <ActionButton onPress={() => setLoggedIn(false)}>
+                    로그아웃
+                </ActionButton>
             </View>
         </SafeAreaView>
     );

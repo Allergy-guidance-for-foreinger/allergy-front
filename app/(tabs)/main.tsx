@@ -2,11 +2,19 @@ import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { Text, TouchableOpacity, View, ScrollView, Dimensions } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import '../global.css';
-import { useAppStore } from "@/store/useAppStore";
-import { cafeterias, mealLabels, mockMenuByWeekday, Weekday, CafeteriaId, MealKey } from '@/data/mockMenu';
+import { useAppStore } from '@/store/useAppStore';
+import { ALLERGY_LIST } from '@/constants/allergyList';
+import { cafeterias, getMenuItemDetail, mealLabels, mockMenuByWeekday, Weekday, CafeteriaId, MealKey } from '@/data/mockMenu';
 const ITEM_WIDTH = 80;
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
+
+type DisplayedAllergy = {
+    key: string;
+    label: string;
+    keywords: string[];
+};
 
 export default function HomeScreen() {
     const allergies  = useAppStore(state => state.allergies);
@@ -55,6 +63,18 @@ export default function HomeScreen() {
         if (!selectedDayName) return null;
         return mockMenuByWeekday[selectedDayName]?.[selectedCafeteria] ?? null;
     }, [selectedCafeteria, selectedDayName]);
+
+    const displayedAllergies: DisplayedAllergy[] = useMemo(() => {
+        return allergies.map((allergy) => {
+            const preset = ALLERGY_LIST.find((item) => item.icon === allergy);
+
+            return {
+                key: allergy,
+                label: preset ? `${preset.icon} ${preset.name}` : allergy,
+                keywords: preset ? [preset.name, preset.nameEn] : [allergy],
+            };
+        });
+    }, [allergies]);
 
     // 메인으로 복귀 시 로직
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -200,14 +220,32 @@ export default function HomeScreen() {
                                     <Text className="text-sm font-semibold text-gray-400">상세보기</Text>
                                 </View>
                                 <View className="gap-2">
-                                    {selectedMenu[meal.key].slice(0, 3).map((item) => (
-                                        <View key={item} className="rounded-2xl bg-gray-50 px-4 py-3">
-                                            <Text className="text-base text-gray-700">{item}</Text>
-                                        </View>
-                                    ))}
-                                    {selectedMenu[meal.key].length > 3 ? (
-                                        <Text className="text-sm text-gray-400">외 {selectedMenu[meal.key].length - 3}개</Text>
-                                    ) : null}
+                                    {selectedMenu[meal.key].map((item) => {
+                                        const detail = getMenuItemDetail(item);
+                                        const hasAllergyMatch = detail.ingredients.some((ingredient) =>
+                                            displayedAllergies.some((allergy) =>
+                                                allergy.keywords.some((keyword) => {
+                                                    const source = ingredient.toLowerCase();
+                                                    const target = keyword.toLowerCase();
+                                                    return source.includes(target) || target.includes(source);
+                                                })
+                                            )
+                                        );
+
+                                        return (
+                                            <View
+                                                key={item}
+                                                className="rounded-2xl bg-gray-50 px-4 py-3 flex-row items-center justify-between"
+                                            >
+                                                <Text className="text-base text-gray-700 flex-1 pr-3">{item}</Text>
+                                                <Ionicons
+                                                    name={hasAllergyMatch ? 'alert-circle' : 'checkmark-circle'}
+                                                    size={20}
+                                                    color={hasAllergyMatch ? '#dc2626' : '#16a34a'}
+                                                />
+                                            </View>
+                                        );
+                                    })}
                                 </View>
                             </TouchableOpacity>
                         ))}

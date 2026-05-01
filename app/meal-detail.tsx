@@ -1,7 +1,8 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { Text, TouchableOpacity, View, ScrollView } from 'react-native';
+import { Text, View, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMemo } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/useAppStore';
 import {
     cafeterias,
@@ -13,6 +14,12 @@ import {
     CafeteriaId,
 } from '@/data/mockMenu';
 import { ALLERGY_LIST } from '@/constants/allergyList';
+
+type DisplayedAllergy = {
+    key: string;
+    label: string;
+    keywords: string[];
+};
 
 export default function MealDetailScreen() {
     const params = useLocalSearchParams<{
@@ -35,88 +42,88 @@ export default function MealDetailScreen() {
         return mockMenuByWeekday[weekday]?.[cafeteria]?.[meal] ?? [];
     }, [cafeteria, meal, weekday]);
 
-    const selectedAllergyNames = useMemo(() => {
-        return ALLERGY_LIST.filter((item) => allergies.includes(item.icon));
+    const displayedAllergies: DisplayedAllergy[] = useMemo(() => {
+        return allergies.map((allergy) => {
+            const preset = ALLERGY_LIST.find((item) => item.icon === allergy);
+
+            return {
+                key: allergy,
+                label: preset ? `${preset.icon} ${preset.name}` : allergy,
+                keywords: preset ? [preset.name, preset.nameEn] : [allergy],
+            };
+        });
     }, [allergies]);
 
     return (
         <SafeAreaView className="flex-1 bg-white">
-            <ScrollView className="flex-1 px-5 pt-10" contentContainerStyle={{ paddingBottom: 24 }}>
-                <View className="mb-4">
-                    <Text className="text-3xl font-bold text-gray-900 mb-2">{mealLabel} 상세</Text>
-                    <Text className="text-gray-500">{date}</Text>
-                    <Text className="text-gray-500 mt-1">{cafeteriaName}</Text>
-                </View>
+            <View className="px-5 pt-2 pb-3">
+                <TouchableOpacity
+                    onPress={() => router.back()}
+                    className="h-12 w-12 items-center justify-center rounded-full bg-white-100 active:bg-gray-200"
+                    accessibilityRole="button"
+                    accessibilityLabel="뒤로가기"
+                >
+                    <Ionicons name="chevron-back" size={24} color="#111827" />
+                </TouchableOpacity>
+            </View>
 
-                <View className="mb-4 rounded-3xl bg-red-50 px-5 py-4">
-                    <Text className="text-lg font-bold text-red-600 mb-2">내 알러지</Text>
-                    {selectedAllergyNames.length > 0 ? (
-                        <View className="flex-row flex-wrap gap-2">
-                            {selectedAllergyNames.map((item) => (
-                                <View key={item.id} className="rounded-full bg-white px-3 py-1 border border-red-200">
-                                    <Text className="text-red-600 font-semibold">
-                                        {item.icon} {item.name}
-                                    </Text>
-                                </View>
-                            ))}
-                        </View>
-                    ) : (
-                        <Text className="text-red-500">선택된 알러지 정보가 없습니다.</Text>
-                    )}
+            <ScrollView className="flex-1 px-5" contentContainerStyle={{ paddingBottom: 24 }}>
+                <View className="mb-4">
+                    <Text className="text-xl font-semibold text-gray-900">{cafeteriaName}</Text>
+                    <Text className="text-xl font-semibold text-gray-900">{mealLabel}</Text>
                 </View>
 
                 <View className="gap-4">
                     {mealItems.map((item) => {
                         const detail = getMenuItemDetail(item);
-                        const matchedAllergies = detail.allergens.filter((icon) => allergies.includes(icon));
+                        const matchedIngredients = detail.ingredients.filter((ingredient) =>
+                            displayedAllergies.some((allergy) =>
+                                allergy.keywords.some((keyword) => {
+                                    const source = ingredient.toLowerCase();
+                                    const target = keyword.toLowerCase();
+                                    return source.includes(target) || target.includes(source);
+                                })
+                            )
+                        );
 
                         return (
                             <View key={item} className="rounded-3xl border border-gray-200 bg-white px-5 py-4">
-                                <Text className="text-xl font-bold text-gray-900 mb-3">{item}</Text>
+                                <Text className="text-xl font-bold text-gray-900 mb-2">{item}</Text>
+                                <Text className="text-gray-500 mb-4">{detail.description}</Text>
 
                                 <Text className="text-sm font-semibold text-gray-500 mb-2">식재료</Text>
                                 <View className="flex-row flex-wrap gap-2 mb-4">
-                                    {detail.ingredients.map((ingredient) => (
-                                        <View key={ingredient} className="rounded-full bg-gray-100 px-3 py-1">
-                                            <Text className="text-gray-700">{ingredient}</Text>
-                                        </View>
-                                    ))}
+                                    {detail.ingredients.map((ingredient) => {
+                                        const isMatched = matchedIngredients.includes(ingredient);
+
+                                        return (
+                                            <View
+                                                key={ingredient}
+                                                className={`rounded-full px-3 py-1 border ${
+                                                    isMatched ? 'bg-red-100 border-red-300' : 'bg-gray-100 border-gray-200'
+                                                }`}
+                                            >
+                                                <Text className={`${isMatched ? 'text-red-700' : 'text-gray-700'}`}>
+                                                    {ingredient}
+                                                </Text>
+                                            </View>
+                                        );
+                                    })}
                                 </View>
 
-                                <Text className="text-sm font-semibold text-gray-500 mb-2">알러지 유발 물질</Text>
-                                <View className="flex-row flex-wrap gap-2">
-                                    {detail.allergens.length > 0 ? (
-                                        detail.allergens.map((icon) => {
-                                            const allergy = ALLERGY_LIST.find((entry) => entry.icon === icon);
-                                            const isMatched = allergies.includes(icon);
-
-                                            return (
-                                                <View
-                                                    key={icon}
-                                                    className={`rounded-full px-3 py-1 border ${
-                                                        isMatched
-                                                            ? 'bg-red-100 border-red-300'
-                                                            : 'bg-gray-100 border-gray-200'
-                                                    }`}
-                                                >
-                                                    <Text className={`${isMatched ? 'text-red-700' : 'text-gray-700'} font-semibold`}>
-                                                        {icon} {allergy?.name ?? icon}
-                                                    </Text>
-                                                </View>
-                                            );
-                                        })
-                                    ) : (
-                                        <Text className="text-gray-400">표시할 알러지 유발 물질이 없습니다.</Text>
-                                    )}
-                                </View>
-
-                                {matchedAllergies.length > 0 ? (
-                                    <View className="mt-4 rounded-2xl bg-red-50 px-4 py-3">
+                                {matchedIngredients.length > 0 ? (
+                                    <View className="rounded-2xl bg-red-50 px-4 py-3">
                                         <Text className="text-red-700 font-semibold">
-                                            내 알러지와 겹치는 항목: {matchedAllergies.map((icon) => icon).join(', ')}
+                                            내 알러지와 겹치는 식재료: {matchedIngredients.join(', ')}
                                         </Text>
                                     </View>
-                                ) : null}
+                                ) : (
+                                    <View className="rounded-2xl bg-gray-50 px-4 py-3">
+                                        <Text className="text-gray-500 font-semibold">
+                                            선택된 알러지와 겹치는 식재료가 없습니다.
+                                        </Text>
+                                    </View>
+                                )}
                             </View>
                         );
                     })}
@@ -128,21 +135,6 @@ export default function MealDetailScreen() {
                     </View>
                 ) : null}
             </ScrollView>
-
-            <View className="flex-row bg-white px-5 py-4 gap-x-3">
-                <TouchableOpacity
-                    className="flex-1 bg-gray-200 py-4 rounded-3xl items-center"
-                    onPress={() => router.back()}
-                >
-                    <Text className="text-gray-800 text-lg font-bold">뒤로</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    className="flex-1 bg-black py-4 rounded-3xl items-center"
-                    onPress={() => router.replace('/main')}
-                >
-                    <Text className="text-white text-lg font-bold">메인으로</Text>
-                </TouchableOpacity>
-            </View>
         </SafeAreaView>
     );
 }

@@ -21,7 +21,6 @@ export default function RootLayout() {
 
     useEffect(() => {
 
-        // 함수 선언
         async function prepare() {
             try {
                 console.log("자동 로그인 검사 시작");
@@ -43,7 +42,6 @@ export default function RootLayout() {
         prepare();
     }, [setLoggedIn]);
 
-    // 라우팅: 상태에 따른 화면 이동
     useEffect(() => {
         // 네비게이션이 준비되지 않았거나, 토큰 검사가 아직 안 끝났다면 리턴
         if (!rootNavigationState?.key || !isAppReady || !hasHydrated) return;

@@ -21,84 +21,109 @@ export const mealLabels = [
 ] as const;
 
 type MenuItemDetail = {
+    description: string;
     ingredients: string[];
-    allergens: string[];
 };
 
 const menuDetailRules: Array<{
     match: RegExp;
+    description: string;
     ingredients: string[];
-    allergens: string[];
 }> = [
     {
+        match: /미역국/,
+        description: '소고기와 미역을 끓여 만든 국',
+        ingredients: ['소고기', '미역', '국간장', '마늘'],
+    },
+    {
+        match: /된장국/,
+        description: '된장과 두부, 채소를 넣어 끓인 국',
+        ingredients: ['된장', '두부', '채소', '육수'],
+    },
+    {
+        match: /볶음밥/,
+        description: '재료를 잘게 썰어 밥과 함께 볶아낸 메뉴',
+        ingredients: ['쌀', '채소', '양념', '식용유'],
+    },
+    {
+        match: /덮밥/,
+        description: '양념한 재료를 밥 위에 얹어 먹는 덮밥',
+        ingredients: ['쌀', '채소', '양념', '소스'],
+    },
+    {
+        match: /샐러드/,
+        description: '신선한 채소와 드레싱을 곁들인 메뉴',
+        ingredients: ['채소', '드레싱', '과일', '견과류'],
+    },
+    {
         match: /토스트|식빵|베이글|팬케이크|샌드위치|모닝빵/,
+        description: '빵류를 구워 버터와 함께 먹는 간단한 식사',
         ingredients: ['빵', '버터', '잼', '우유'],
-        allergens: ['🌾', '🥚', '🥛'],
     },
     {
         match: /시리얼|그래놀라|오트밀/,
-        ingredients: ['곡물', '우유', '견과류', '과일'],
-        allergens: ['🥛', '🌰'],
+        description: '곡물에 우유와 과일을 곁들여 간단히 먹는 식사',
+        ingredients: ['곡물', '우유', '과일', '견과류'],
     },
     {
         match: /우유|요거트|치즈|크림|스프/,
-        ingredients: ['유제품', '과일', '시리얼'],
-        allergens: ['🥛'],
+        description: '유제품이나 크림 베이스를 사용해 부드럽게 만든 메뉴',
+        ingredients: ['유제품', '채소', '과일'],
     },
     {
         match: /계란|달걀|오믈렛|스크램블|계란찜|계란후라이|삶은 달걀/,
+        description: '계란을 삶거나 부치거나 찐 형태로 만든 메뉴',
         ingredients: ['계란', '소금', '버터'],
-        allergens: ['🥚', '🥛'],
     },
     {
         match: /김밥|주먹밥|유부초밥|비빔밥|덮밥|볶음밥|라이스|밥$/,
+        description: '밥을 기본으로 채소와 재료를 함께 조합한 메뉴',
         ingredients: ['쌀', '채소', '양념', '김'],
-        allergens: ['🫘'],
     },
     {
         match: /라면|우동|국수|쫄면|짬뽕|떡볶이|라볶이|떡라면/,
+        description: '면이나 떡을 육수와 양념에 끓여낸 메뉴',
         ingredients: ['면', '양념장', '채소', '육수'],
-        allergens: ['🌾', '🫘'],
     },
     {
         match: /만두|김말이|튀김|군만두|치킨너겟|돈까스/,
+        description: '속재료에 튀김옷을 입혀 기름에 튀겨낸 메뉴',
         ingredients: ['밀가루', '식용유', '소스', '고기'],
-        allergens: ['🌾', '🥚', '🫘'],
     },
     {
         match: /닭|치킨/,
+        description: '닭고기를 양념하거나 튀겨 만든 메뉴',
         ingredients: ['닭고기', '소금', '후추', '양념'],
-        allergens: ['🐔', '🫘'],
     },
     {
         match: /돼지|제육|돈육|불고기|돈까스/,
+        description: '돼지고기나 양념된 고기를 볶거나 구워낸 메뉴',
         ingredients: ['돼지고기', '양념', '채소', '밥'],
-        allergens: ['🐷', '🫘', '🌾'],
     },
     {
         match: /소고기|쇠고기|불고기|비프/,
+        description: '소고기를 양념해 볶거나 조린 메뉴',
         ingredients: ['쇠고기', '양념', '채소', '밥'],
-        allergens: ['🐮', '🫘'],
     },
     {
         match: /고등어|생선|연어|삼치|멸치/,
+        description: '생선을 구워 담백하게 만든 메뉴',
         ingredients: ['생선', '소금', '레몬', '채소'],
-        allergens: ['🐟'],
     },
     {
         match: /새우|해물|오징어|게|조개|굴/,
+        description: '해산물을 넣고 볶거나 끓여낸 메뉴',
         ingredients: ['해산물', '양념', '채소', '면'],
-        allergens: ['🦐', '🦀', '🦑', '🦪'],
     },
     {
         match: /견과|땅콩|호두/,
+        description: '견과류를 활용해 고소한 맛을 살린 메뉴',
         ingredients: ['견과류', '과일', '곡물'],
-        allergens: ['🥜', '🌰'],
     },
     {
         match: /토마토/,
+        description: '토마토와 채소를 함께 조리한 메뉴',
         ingredients: ['토마토', '채소', '올리브오일'],
-        allergens: ['🍅'],
     },
 ];
 
@@ -107,14 +132,14 @@ export function getMenuItemDetail(name: string): MenuItemDetail {
 
     if (matchedRule) {
         return {
+            description: matchedRule.description,
             ingredients: matchedRule.ingredients,
-            allergens: matchedRule.allergens,
         };
     }
 
     return {
+        description: '재료를 기본 방식으로 조리한 메뉴',
         ingredients: [name, '채소', '기본 양념'],
-        allergens: [],
     };
 }
 
