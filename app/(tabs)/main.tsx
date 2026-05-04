@@ -68,10 +68,6 @@ export default function HomeScreen() {
         return weekDates.find((item) => item.id === selectedDate)?.dayName as Weekday | undefined;
     }, [selectedDate, weekDates]);
 
-    const selectedCafeteriaName = useMemo(() => {
-        return cafeterias.find((item) => item.id === selectedCafeteria)?.name ?? '';
-    }, [selectedCafeteria]);
-
     const selectedMenu = useMemo(() => {
         if (!selectedDayName) return null;
         return mockMenuByWeekday[selectedDayName]?.[selectedCafeteria] ?? null;

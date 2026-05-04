@@ -6,6 +6,7 @@ import React from "react";
 import {useAppStore} from "@/store/useAppStore";
 import { ActionButton } from '@/components/ui/action-button';
 const SETTINGS_MENU = [
+    { id: 'country', title: 'Country Settings', icon: 'earth-outline', path: '/settings/country' },
     { id: 'allergy', title: 'Allergy Settings', icon: 'shield-checkmark-outline', path: '/settings/allergy' },
     { id: 'language', title: 'Language Settings', icon: 'language-outline', path: '/settings/language' },
 ];

@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react';
-import { Text, View, TouchableOpacity, TextInput } from 'react-native';
+import { useMemo } from 'react';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useAppStore } from '../../store/useAppStore';
-import { ALLERGY_LIST, normalizeAllergyValue } from '@/constants/allergyList';
+import { ALLERGY_GROUPS, normalizeAllergies } from '@/constants/allergyList';
 
 interface AllergySettingsProps {
     title?: string;
@@ -10,120 +10,95 @@ interface AllergySettingsProps {
 }
 
 export default function AllergySettings({
-    title = 'Allergies',
-    subtitle = 'Select every ingredient you need to avoid.',
+    title = 'Allergy Categories',
+    subtitle = 'Tap every ingredient category you need to avoid.',
     showHeader = true,
 }: AllergySettingsProps) {
     const allergies = useAppStore((state) => state.allergies);
     const setAllergies = useAppStore((state) => state.setAllergies);
-    const [customAllergyInput, setCustomAllergyInput] = useState('');
-    const normalizedAllergies = useMemo(
-        () => Array.from(new Set(allergies.map((allergy) => normalizeAllergyValue(allergy)))),
-        [allergies]
-    );
 
-    const presetAllergySet = useMemo(() => new Set(ALLERGY_LIST.map((allergy) => allergy.label)), []);
-    const customAllergies = useMemo(
-        () => normalizedAllergies.filter((allergy) => !presetAllergySet.has(allergy)),
-        [normalizedAllergies, presetAllergySet]
-    );
+    const normalizedAllergies = useMemo(() => normalizeAllergies(allergies), [allergies]);
 
     const toggleAllergy = (selectedLabel: string) => {
-        if (normalizedAllergies.includes(selectedLabel)) {
-            setAllergies(normalizedAllergies.filter((a) => a !== selectedLabel));
-        } else {
-            setAllergies([...normalizedAllergies, selectedLabel]);
-        }
-    };
+        const nextAllergies = normalizedAllergies.includes(selectedLabel)
+            ? normalizedAllergies.filter((item) => item !== selectedLabel)
+            : [...normalizedAllergies, selectedLabel];
 
-    const handleAddCustomAllergy = () => {
-        const nextAllergy = customAllergyInput.trim();
-
-        if (!nextAllergy || normalizedAllergies.includes(nextAllergy)) {
-            setCustomAllergyInput('');
-            return;
-        }
-
-        setAllergies([...normalizedAllergies, nextAllergy]);
-        setCustomAllergyInput('');
+        setAllergies(nextAllergies);
     };
 
     return (
-        <View className="px-5 pt-10 ">
+        <ScrollView className="flex-1 px-5 pt-8">
             {showHeader ? (
-                <>
-                    <Text className="text-3xl font-bold text-red-500 mb-2">{title}</Text>
-                    <Text className="text-gray-600 text-lg mb-10">{subtitle}</Text>
-                </>
+                <View className="mb-8">
+                    <Text className="text-3xl font-bold text-gray-900 mb-2">{title}</Text>
+                    <Text className="text-gray-500 text-lg">{subtitle}</Text>
+                    <View className="mt-4 self-start rounded-full bg-gray-100 px-4 py-2">
+                        <Text className="text-sm font-semibold text-gray-700">
+                            {normalizedAllergies.length} selected
+                        </Text>
+                    </View>
+                </View>
             ) : null}
 
-            <View className="flex-row flex-wrap gap-x-3 gap-y-3 mb-2">
-                {ALLERGY_LIST.map((allergy) => {
-                    const isSelected = normalizedAllergies.includes(allergy.label);
-                    return (
-                        <TouchableOpacity
-                            key={allergy.id}
-                            className={`w-[31%] min-h-[54px] flex-row items-center justify-center px-3 py-2 rounded-2xl border-2 ${
-                                isSelected ? 'border-red-500 bg-red-50' : 'border-gray-200 bg-white'
-                            }`}
-                            onPress={() => toggleAllergy(allergy.label)}
-                        >
-                            <Text className={`text-[15px] font-medium text-center ${isSelected ? 'text-red-600' : 'text-gray-700'}`}>
-                                {allergy.label}
-                            </Text>
-                        </TouchableOpacity>
-                    );
-                })}
-
+            <View className="relative mb-6 rounded-[24px] border border-gray-200 bg-white px-4 py-5 pt-6">
+                <View className="absolute -top-3 left-4 rounded-full bg-white px-2">
+                    <Text className="text-sm font-semibold text-gray-500">selected allergies</Text>
+                </View>
+                {normalizedAllergies.length > 0 ? (
+                    <View className="flex-row flex-wrap gap-2">
+                        {normalizedAllergies.map((allergy) => (
+                            <View key={allergy} className="rounded-full bg-blue-500 px-3 py-2">
+                                <Text className="text-xs font-semibold text-white">{allergy}</Text>
+                            </View>
+                        ))}
+                    </View>
+                ) : (
+                    <Text className="text-sm text-gray-400">No allergies selected yet.</Text>
+                )}
             </View>
 
-            <View className="mt-10">
-                <Text className="text-lg font-bold text-gray-900 mb-2">Custom Allergy</Text>
-                <Text className="text-sm text-gray-500 mb-2">You can type an allergy name to add it directly.</Text>
+            {ALLERGY_GROUPS.map((group) => {
+                const groupHasSelection = group.items.some((item) => normalizedAllergies.includes(item.label));
 
-                <View className="flex-row items-center gap-2">
-                    <TextInput
-                        value={customAllergyInput}
-                        onChangeText={setCustomAllergyInput}
-                        placeholder="e.g. Apple, Peach"
-                        autoCapitalize="none"
-                        className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-gray-900"
-                        returnKeyType="done"
-                        onSubmitEditing={handleAddCustomAllergy}
-                    />
-                    <TouchableOpacity
-                        className="rounded-2xl bg-black px-4 py-3"
-                        onPress={handleAddCustomAllergy}
+                return (
+                    <View
+                        key={group.id}
+                        className={`mb-6 rounded-[28px] border px-4 py-4 ${
+                            groupHasSelection ? 'border-blue-200 bg-blue-50/40' : 'border-gray-200 bg-white'
+                        }`}
                     >
-                        <Text className="text-white font-bold">Add</Text>
-                    </TouchableOpacity>
-                </View>
+                        <View className="mb-4">
+                            <Text className="text-lg font-bold text-gray-900">{group.title}</Text>
+                            <Text className="text-sm text-gray-500 mt-1">{group.subtitle}</Text>
+                        </View>
 
-                {customAllergies.length > 0 ? (
-                    <View className="mt-4">
-                        <Text className="text-sm font-semibold text-gray-500 mb-2">Saved Allergies</Text>
                         <View className="flex-row flex-wrap gap-3">
-                            {customAllergies.map((allergy) => {
-                                const isSelected = normalizedAllergies.includes(allergy);
+                            {group.items.map((item) => {
+                                const isSelected = normalizedAllergies.includes(item.label);
 
                                 return (
                                     <TouchableOpacity
-                                        key={allergy}
-                                        className={`px-4 py-3 rounded-2xl border-2 ${
-                                            isSelected ? 'border-red-500 bg-red-50' : 'border-gray-200 bg-white'
+                                        key={item.id}
+                                        className={`min-h-[46px] rounded-full border px-4 py-3 ${
+                                            isSelected ? 'border-blue-500 bg-blue-500' : 'border-gray-200 bg-white'
                                         }`}
-                                        onPress={() => toggleAllergy(allergy)}
+                                        onPress={() => toggleAllergy(item.label)}
                                     >
-                                        <Text className={`font-medium ${isSelected ? 'text-red-600' : 'text-gray-700'}`}>
-                                            {allergy}
+                                        <Text
+                                            className={`text-[15px] font-semibold ${
+                                                isSelected ? 'text-white' : 'text-gray-700'
+                                            }`}
+                                        >
+                                            {item.label}
                                         </Text>
                                     </TouchableOpacity>
                                 );
                             })}
                         </View>
                     </View>
-                ) : null}
-            </View>
-        </View>
+                );
+            })}
+        </ScrollView>
     );
 }

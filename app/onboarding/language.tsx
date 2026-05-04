@@ -12,7 +12,7 @@ export default function LanguageScreen() {
                 <ActionButton className="mb-5" onPress={() => router.back()}>
                     Back
                 </ActionButton>
-                <ActionButton className="mb-5" onPress={() => router.push('/onboarding/allergy' as any)}>
+                <ActionButton className="mb-5" onPress={() => router.push('/onboarding/country' as any)}>
                     Next
                 </ActionButton>
             </View>

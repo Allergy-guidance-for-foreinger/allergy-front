@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useAppStore } from '../../store/useAppStore';
 import AllergySettings from '../../components/settings/AllergySettings';
-import { ScrollView, View } from 'react-native';
+import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ActionButton } from '../../components/ui/action-button';
 
@@ -10,9 +10,9 @@ export default function AllergyScreen() {
     const completeOnboarding = useAppStore((state) => state.completeOnboarding);
     return (
         <SafeAreaView className="flex-1 bg-white">
-            <ScrollView className="flex-1" contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}>
+            <View className="flex-1">
                 <AllergySettings />
-            </ScrollView>
+            </View>
             <View className="flex-row bg-white px-5 pt-4 gap-x-4 justify-center">
                 <ActionButton className="mb-5" onPress={() => router.back()}>
                     Back

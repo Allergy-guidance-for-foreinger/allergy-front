@@ -22,6 +22,16 @@ export default function TabsLayout() {
                 }}
             />
 
+            <Tabs.Screen
+                name="translate"
+                options={{
+                    title: 'Translate',
+                    tabBarIcon: ({ color }) => (
+                        <Ionicons name="chatbubble-ellipses-outline" size={24} color={color} />
+                    ),
+                }}
+            />
+
             {/* 2. 두 번째 탭: 설정 화면 */}
             <Tabs.Screen
                 name="settings"
