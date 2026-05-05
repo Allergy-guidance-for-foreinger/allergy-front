@@ -5,6 +5,7 @@ export default function OnboardingLayout() {
         <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="language" />
             <Stack.Screen name="country" />
+            <Stack.Screen name="school" />
             <Stack.Screen name="allergy" />
         </Stack>
     );

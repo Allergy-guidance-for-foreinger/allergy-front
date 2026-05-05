@@ -45,7 +45,7 @@ export const COUNTRY_LIST: CountryOption[] = countries
         const aliases = getAliases(country);
 
         return {
-            code: country.cca2.toLowerCase(),
+            code: country.cca2.toUpperCase(),
             label,
             officialName,
             flag,
@@ -56,8 +56,14 @@ export const COUNTRY_LIST: CountryOption[] = countries
     })
     .sort((a, b) => a.label.localeCompare(b.label));
 
+const COUNTRY_BY_CODE = new Map(COUNTRY_LIST.map((country) => [country.code, country] as const));
+
+export function normalizeCountryCode(value?: string | null): string {
+    return (value ?? '').trim().toUpperCase();
+}
+
 export function getCountryByCode(code?: string): CountryOption | undefined {
-    return COUNTRY_LIST.find((country) => country.code === code?.toLowerCase());
+    return COUNTRY_BY_CODE.get(normalizeCountryCode(code));
 }
 
 export function normalizeCountryQuery(country: CountryOption): string[] {

@@ -1,24 +1,66 @@
 import { router } from 'expo-router';
 import { useAppStore } from '../../store/useAppStore';
 import AllergySettings from '../../components/settings/AllergySettings';
-import { View } from 'react-native';
+import { Alert, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ActionButton } from '../../components/ui/action-button';
+import { saveOnboardingProfile } from '@/api/onboarding';
+import { toAllergyCodes } from '@/constants/allergyList';
+import { toServerReligiousCode } from '@/data/religiousOptions';
+import { useState } from 'react';
 
 
 export default function AllergyScreen() {
-    const completeOnboarding = useAppStore((state) => state.completeOnboarding);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const language = useAppStore((state) => state.language);
+    const country = useAppStore((state) => state.country);
+    const schoolId = useAppStore((state) => state.schoolId);
+    const religiousCode = useAppStore((state) => state.religiousCode);
+    const allergies = useAppStore((state) => state.allergies);
+    const setHasCompletedOnboarding = useAppStore((state) => state.setHasCompletedOnboarding);
+
+    const handleFinishOnboarding = async () => {
+        if (isSubmitting) return;
+
+        if (schoolId === null) {
+            Alert.alert('School missing', 'Please select your school before finishing onboarding.');
+            return;
+        }
+
+        try {
+            setIsSubmitting(true);
+            const result = await saveOnboardingProfile({
+                languageCode: language,
+                schoolId,
+                allergyCodes: toAllergyCodes(allergies),
+                religiousCode: toServerReligiousCode(religiousCode),
+                countryCode: country,
+            });
+
+            if (!result.onboardingCompleted) {
+                throw new Error('Onboarding was not completed on the server.');
+            }
+
+            setHasCompletedOnboarding(true);
+            router.replace('/main');
+        } catch (error: any) {
+            Alert.alert('Onboarding failed', error?.message ?? 'Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     return (
-        <SafeAreaView className="flex-1 bg-white">
+            <SafeAreaView className="flex-1 bg-white">
             <View className="flex-1">
-                <AllergySettings />
+                <AllergySettings persistToServer={false} />
             </View>
             <View className="flex-row bg-white px-5 pt-4 gap-x-4 justify-center">
                 <ActionButton className="mb-5" onPress={() => router.back()}>
                     Back
                 </ActionButton>
-                <ActionButton className="mb-5" onPress={() => completeOnboarding()}>
-                    Finish Onboarding
+                <ActionButton className="mb-5" disabled={isSubmitting} onPress={handleFinishOnboarding}>
+                    {isSubmitting ? 'Saving...' : 'Finish Onboarding'}
                 </ActionButton>
             </View>
         </SafeAreaView>

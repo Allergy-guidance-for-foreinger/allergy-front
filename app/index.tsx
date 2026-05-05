@@ -9,7 +9,9 @@ import {loginWithGoogleToken} from "@/api/auth";
 
 export default function LoginScreen() {
     const setLoggedIn = useAppStore((state) => state.setLoggedIn);
-    const completeOnboarding = useAppStore((state) => state.completeOnboarding);
+    const setHasCompletedOnboarding = useAppStore((state) => state.setHasCompletedOnboarding);
+    const resetProfile = useAppStore((state) => state.resetProfile);
+    const hydrateFromServerSettings = useAppStore((state) => state.hydrateFromServerSettings);
     useEffect(() => {
         GoogleSignin.configure({
             webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID,
@@ -29,8 +31,18 @@ export default function LoginScreen() {
                 console.log('deviceId acquired: ', deviceId);
                 console.log('idToken: ', idToken);
                 console.log('Google ID token acquired, sending to server');
-                await loginWithGoogleToken(idToken, deviceId);
+                const authData = await loginWithGoogleToken(idToken, deviceId);
                 setLoggedIn(true);
+                setHasCompletedOnboarding(Boolean(authData.onboardingCompleted));
+
+                // 기존 유저
+                if (authData.onboardingCompleted) {
+                    await hydrateFromServerSettings();
+                }
+                // 신규 유저
+                else {
+                    resetProfile();
+                }
             }
         } catch (error: any) {
             if (error.code === statusCodes.SIGN_IN_CANCELLED) {
@@ -98,7 +110,10 @@ export default function LoginScreen() {
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    onPress={()=>completeOnboarding()}
+                    onPress={() => {
+                        setLoggedIn(true);
+                        setHasCompletedOnboarding(true);
+                    }}
                     className="w-full h-[50px] bg-white border border-gray-300 rounded-2xl flex-row justify-center items-center active:bg-gray-400"
                 >
                     <Text className="text-gray-900 font-semibold text-base">

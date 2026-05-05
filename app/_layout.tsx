@@ -3,7 +3,7 @@ import { Stack, useRouter, useSegments, useRootNavigationState } from 'expo-rout
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAppStore } from '../store/useAppStore';
 import * as SplashScreen from 'expo-splash-screen';
-import * as SecureStore from 'expo-secure-store';
+import { verifyAndRestoreSession } from '@/api/auth';
 
 SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
@@ -11,6 +11,9 @@ const queryClient = new QueryClient();
 export default function RootLayout() {
     const isLoggedIn = useAppStore((state) => state.isLoggedIn);
     const setLoggedIn = useAppStore((state) => state.setLoggedIn);
+    const setHasCompletedOnboarding = useAppStore((state) => state.setHasCompletedOnboarding);
+    const resetProfile = useAppStore((state) => state.resetProfile);
+    const hydrateFromServerSettings = useAppStore((state) => state.hydrateFromServerSettings);
     const hasCompletedOnboarding = useAppStore((state) => state.hasCompletedOnboarding);
     const hasHydrated = useAppStore((state) => state._hasHydrated);
     const router = useRouter();
@@ -23,24 +26,32 @@ export default function RootLayout() {
 
         async function prepare() {
             try {
-                console.log("자동 로그인 검사 시작");
-                const token = await SecureStore.getItemAsync('accessToken');
+                console.log('자동 로그인 검사 시작');
+                const session = await verifyAndRestoreSession();
 
-                if (token) {
-                    // 기기에 토큰이 있다면 로그인 상태로 엎어침
-                    setLoggedIn(true);
-                } else {
-                    setLoggedIn(false);
+                setLoggedIn(session.isValid);
+                if (typeof session.onboardingCompleted === 'boolean') {
+                    setHasCompletedOnboarding(session.onboardingCompleted);
+                }
+
+                if (session.isValid && session.onboardingCompleted) {
+                    await hydrateFromServerSettings();
+                }
+
+                if (!session.isValid) {
+                    resetProfile();
                 }
             } catch (error) {
-                console.warn("자동 로그인 에러:", error);
+                console.warn('자동 로그인 에러:', error);
+                setLoggedIn(false);
+                resetProfile();
             } finally {
                 setIsAppReady(true);
             }
         }
         // 함수 호출
         prepare();
-    }, [setLoggedIn]);
+    }, [hydrateFromServerSettings, resetProfile, setHasCompletedOnboarding, setLoggedIn]);
 
     useEffect(() => {
         // 네비게이션이 준비되지 않았거나, 토큰 검사가 아직 안 끝났다면 리턴
@@ -61,7 +72,7 @@ export default function RootLayout() {
         // 라우팅 결정이 끝났으니 스플래시 화면 치우기
         SplashScreen.hideAsync();
 
-    }, [isLoggedIn, hasCompletedOnboarding, rootNavigationState?.key, isAppReady, hasHydrated, router, setLoggedIn, segments]);
+    }, [hasCompletedOnboarding, hasHydrated, isAppReady, isLoggedIn, rootNavigationState?.key, router, segments]);
 
     return (
         <QueryClientProvider client={queryClient}>

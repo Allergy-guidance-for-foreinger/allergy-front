@@ -1,6 +1,8 @@
-import { useEffect, useMemo } from 'react';
-import { Text, View, TouchableOpacity } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { Alert, Text, View, TouchableOpacity } from 'react-native';
+import { useQuery } from '@tanstack/react-query';
 import { useAppStore } from '@/store/useAppStore';
+import { getLanguageSetting, updateLanguageSetting, getLanguageOptions } from '@/api/settings';
 
 type LanguageOption = {
     code: string;
@@ -12,6 +14,7 @@ interface LanguageSettingsProps {
     subtitle?: string;
     options?: LanguageOption[];
     showHeader?: boolean;
+    persistToServer?: boolean;
 }
 
 const DEFAULT_OPTIONS: LanguageOption[] = [
@@ -23,11 +26,31 @@ const DEFAULT_OPTIONS: LanguageOption[] = [
 export default function LanguageSettings({
     title = 'Language',
     subtitle = 'Select the language you want to use.',
-    options = DEFAULT_OPTIONS,
+    options: optionsProp = DEFAULT_OPTIONS,
     showHeader = true,
+    persistToServer = true,
 }: LanguageSettingsProps) {
     const language = useAppStore((state) => state.language);
     const setLanguage = useAppStore((state) => state.setLanguage);
+    const [isSyncing, setIsSyncing] = useState(false);
+
+    const { data: languageOptionsResponse } = useQuery({
+        queryKey: ['languageOptions'],
+        queryFn: getLanguageOptions,
+        staleTime: 1000 * 60 * 60,
+    });
+
+    const options: LanguageOption[] = useMemo(() => {
+        const serverOptions = languageOptionsResponse?.data?.languages;
+        if (serverOptions && serverOptions.length > 0) {
+            return serverOptions.map((option) => ({
+                code: option.code,
+                label: option.englishName,
+            }));
+        }
+        return optionsProp;
+    }, [languageOptionsResponse, optionsProp]);
+
     const selectedLanguage = useMemo(() => {
         return options.some((option) => option.code === language) ? language : options[0]?.code ?? 'en';
     }, [language, options]);
@@ -37,6 +60,48 @@ export default function LanguageSettings({
             setLanguage(options[0].code);
         }
     }, [language, options, setLanguage]);
+
+    useEffect(() => {
+        if (!persistToServer) return;
+
+        let mounted = true;
+
+        const loadLanguage = async () => {
+            try {
+                const result = await getLanguageSetting();
+                if (!mounted) return;
+
+                if (result?.data?.languageCode && options.some((option) => option.code === result.data.languageCode)) {
+                    setLanguage(result.data.languageCode);
+                }
+            } catch (error) {
+                console.warn('Failed to load language setting:', error);
+            }
+        };
+
+        loadLanguage();
+
+        return () => {
+            mounted = false;
+        };
+    }, [options, persistToServer, setLanguage]);
+
+    const handleSelectLanguage = async (code: string) => {
+        const previousLanguage = selectedLanguage;
+        setLanguage(code);
+
+        if (!persistToServer) return;
+
+        try {
+            setIsSyncing(true);
+            await updateLanguageSetting(code);
+        } catch (error: any) {
+            setLanguage(previousLanguage);
+            Alert.alert('Language update failed', error?.message ?? 'Please try again.');
+        } finally {
+            setIsSyncing(false);
+        }
+    };
 
     return (
         <View className="px-5 pt-10">
@@ -48,19 +113,23 @@ export default function LanguageSettings({
             ) : null}
 
             <View className="gap-y-4">
-                {options.map((lang) => (
-                    <TouchableOpacity
-                        key={lang.code}
-                        className={`py-5 px-5 rounded-3xl border-2 ${
-                            selectedLanguage === lang.code ? 'border-black bg-pink-100' : 'border-gray-200 bg-white'
-                        }`}
-                        onPress={() => setLanguage(lang.code)}
-                    >
-                        <Text className={`text-xl font-semibold ${selectedLanguage === lang.code ? 'text-black' : 'text-gray-400'}`}>
-                            {lang.label}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
+                {options.map((lang) => {
+                    const isSelected = selectedLanguage === lang.code;
+                    return (
+                        <TouchableOpacity
+                            key={lang.code}
+                            disabled={isSyncing}
+                            className={`py-5 px-5 rounded-3xl border ${
+                                isSelected ? 'border-blue-500 bg-blue-500' : 'border-gray-200 bg-white'
+                            }`}
+                            onPress={() => handleSelectLanguage(lang.code)}
+                        >
+                            <Text className={`text-xl font-semibold ${isSelected ? 'text-white' : 'text-gray-700'}`}>
+                                {lang.label}
+                            </Text>
+                        </TouchableOpacity>
+                    );
+                })}
             </View>
         </View>
     );
