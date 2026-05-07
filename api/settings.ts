@@ -120,7 +120,6 @@ export async function getSchoolOptions() {
     );
 }
 
-
 //유저 정보 가져오기
 export async function loadCurrentUserSettings() {
     const [languageResult, countryResult, schoolResult, religionResult, allergyResult] = await Promise.allSettled([

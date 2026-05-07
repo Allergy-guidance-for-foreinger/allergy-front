@@ -85,10 +85,13 @@ const INGREDIENT_TRANSLATIONS: Record<string, string> = {
     아메리카노: 'Americano',
     카레: 'Curry',
     치즈: 'Cheese',
+    새우: 'Shrimp',
 };
 
 const MENU_ITEM_TRANSLATION_RULES: Array<[RegExp, string]> = [
     [/김치볶음밥/, 'Kimchi Fried Rice'],
+    [/새우볶음밥/, 'Shrimp Fried Rice'],
+    [/탕수육/, 'Sweet and Sour Pork'],
     [/소고기미역국/, 'Beef Seaweed Soup'],
     [/미역국/, 'Seaweed Soup'],
     [/미소된장국|된장국/, 'Miso Soybean Paste Soup'],
@@ -248,6 +251,16 @@ const menuDetailRules: Array<{
         ingredients: ['된장', '두부', '채소', '육수'],
     },
     {
+        match: /새우볶음밥/,
+        description: 'Fried rice cooked with shrimp and vegetables',
+        ingredients: ['쌀', '새우', '채소', '양념', '식용유'],
+    },
+    {
+        match: /탕수육/,
+        description: 'Crispy fried pork served with sweet and sour sauce',
+        ingredients: ['돼지고기', '밀가루', '식용유', '양념'],
+    },
+    {
         match: /볶음밥/,
         description: 'Ingredients are chopped and stir-fried with rice',
         ingredients: ['쌀', '채소', '양념', '식용유'],
@@ -357,6 +370,72 @@ export function getWeekdayFromDateString(dateString: string): Weekday | null {
     return ['일', '월', '화', '수', '목', '금', '토'][date.getDay()] as Weekday;
 }
 
+export type RiskLevel = 'high' | 'medium' | 'low';
+
+// 데모용 위험도 매핑 (실제는 서버 /api/v1/mealcrawl/menus/{mealMenuId}의 risk 필드 사용 예정)
+const DEMO_RISK_RULES: Array<{
+    menuPattern: RegExp;
+    allergyLabel: string;
+    risk: RiskLevel;
+}> = [
+    { menuPattern: /새우볶음밥/, allergyLabel: 'Shrimp', risk: 'high' },
+    { menuPattern: /된장국/, allergyLabel: 'Shrimp', risk: 'medium' },
+    { menuPattern: /탕수육/, allergyLabel: 'Shrimp', risk: 'low' },
+];
+
+interface AllergyMatcher {
+    label: string;
+    keywords: string[];
+}
+
+// 메뉴와 사용자 알러지를 받아 위험도를 반환. 매칭이 없으면 null.
+//   1) DEMO_RISK_RULES override (특정 데모 케이스)
+//   2) 메뉴 이름에 알러지 키워드 매칭 → 'high' (이름에 직접 들어있음)
+//   3) 식재료에만 키워드 매칭 → 'medium' (이름엔 안 보이지만 포함됨)
+//   4) 매칭 없음 → null
+export function getMenuRiskLevel(
+    menuName: string,
+    allergies: AllergyMatcher[]
+): RiskLevel | null {
+    // 1) 데모 룰
+    for (const rule of DEMO_RISK_RULES) {
+        if (!rule.menuPattern.test(menuName)) continue;
+        if (allergies.some((allergy) => allergy.label === rule.allergyLabel)) {
+            return rule.risk;
+        }
+    }
+
+    const lowerName = menuName.toLowerCase();
+
+    // 2) 메뉴 이름에 키워드 매칭 → high
+    for (const allergy of allergies) {
+        for (const keyword of allergy.keywords) {
+            const target = keyword.toLowerCase();
+            if (lowerName.includes(target) || target.includes(lowerName)) {
+                return 'high';
+            }
+        }
+    }
+
+    // 3) 식재료에만 키워드 매칭 → medium
+    const detail = getMenuItemDetail(menuName);
+    for (const allergy of allergies) {
+        for (const keyword of allergy.keywords) {
+            const target = keyword.toLowerCase();
+            if (
+                detail.ingredients.some((ingredient) => {
+                    const source = ingredient.toLowerCase();
+                    return source.includes(target) || target.includes(source);
+                })
+            ) {
+                return 'medium';
+            }
+        }
+    }
+
+    return null;
+}
+
 export const mockMenuByWeekday: Record<Weekday, Record<CafeteriaId, MealMenu>> = {
     월: {
         a1: {
@@ -412,7 +491,7 @@ export const mockMenuByWeekday: Record<Weekday, Record<CafeteriaId, MealMenu>> =
     목: {
         a1: {
             breakfast: ['식빵', '딸기잼', '계란스크램블', '우유'],
-            lunch: ['오징어볶음', '콩나물국', '두부부침', '김치'],
+            lunch: ['새우볶음밥', '된장국', '탕수육'],
             dinner: ['닭강정', '감자조림', '미역국', '과일'],
         },
         b2: {

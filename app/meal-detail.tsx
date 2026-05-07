@@ -6,6 +6,7 @@ import { useAppStore } from '@/store/useAppStore';
 import {
     cafeterias,
     getMenuItemDetail,
+    getMenuRiskLevel,
     getWeekdayFromDateString,
     mealLabels,
     mockMenuByWeekday,
@@ -15,6 +16,7 @@ import {
 } from '@/data/mockMenu';
 import { ALLERGY_LIST, normalizeAllergyValue } from '@/constants/allergyList';
 import ScreenHeader from '@/components/ui/screen-header';
+import { RiskIndicator } from '@/components/ui/risk-indicator';
 
 type DisplayedAllergy = {
     key: string;
@@ -69,6 +71,7 @@ export default function MealDetailScreen() {
                     {mealItems.map((item) => {
                         const detail = getMenuItemDetail(item);
                         const displayName = translateMenuItem(item);
+                        const riskLevel = getMenuRiskLevel(item, displayedAllergies);
                         const matchedIngredients = detail.ingredients.filter((ingredient) =>
                             displayedAllergies.some((allergy) =>
                                 allergy.keywords.some((keyword) => {
@@ -81,7 +84,10 @@ export default function MealDetailScreen() {
 
                         return (
                             <View key={item} className="rounded-3xl border-2 border-gray-300 bg-white px-5 py-4">
-                                <Text className="text-xl font-bold text-gray-900 mb-2">{displayName}</Text>
+                                <View className="flex-row items-center justify-between mb-2">
+                                    <Text className="text-xl font-bold text-gray-900 flex-1 pr-3">{displayName}</Text>
+                                    <RiskIndicator level={riskLevel} />
+                                </View>
                                 <Text className="text-gray-500 mb-4">{detail.description}</Text>
 
                                 <Text className="text-sm font-semibold text-gray-500 mb-2">Ingredients</Text>

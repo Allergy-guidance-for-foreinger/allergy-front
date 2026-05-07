@@ -2,11 +2,11 @@ import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { Text, TouchableOpacity, View, ScrollView, Dimensions } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import '../global.css';
 import { useAppStore } from '@/store/useAppStore';
 import { ALLERGY_LIST, normalizeAllergyValue } from '@/constants/allergyList';
-import { cafeterias, getMenuItemDetail, mealLabels, mockMenuByWeekday, translateMenuItem, Weekday, CafeteriaId, MealKey } from '@/data/mockMenu';
+import { cafeterias, getMenuRiskLevel, mealLabels, mockMenuByWeekday, translateMenuItem, Weekday, CafeteriaId, MealKey } from '@/data/mockMenu';
+import { RiskIndicator } from '@/components/ui/risk-indicator';
 const ITEM_WIDTH = 80;
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 const DISPLAY_DAY_NAMES: Record<string, string> = {
@@ -224,17 +224,8 @@ export default function HomeScreen() {
                                 </View>
                                 <View className="gap-2">
                                     {selectedMenu[meal.key].map((item) => {
-                                        const detail = getMenuItemDetail(item);
                                         const displayName = translateMenuItem(item);
-                                        const hasAllergyMatch = detail.ingredients.some((ingredient) =>
-                                            displayedAllergies.some((allergy) =>
-                                                allergy.keywords.some((keyword) => {
-                                                    const source = ingredient.toLowerCase();
-                                                    const target = keyword.toLowerCase();
-                                                    return source.includes(target) || target.includes(source);
-                                                })
-                                            )
-                                        );
+                                        const riskLevel = getMenuRiskLevel(item, displayedAllergies);
 
                                         return (
                                             <View
@@ -242,11 +233,7 @@ export default function HomeScreen() {
                                                 className="rounded-2xl bg-gray-50 px-4 py-3 flex-row items-center justify-between"
                                             >
                                                 <Text className="text-base text-gray-700 flex-1 pr-3">{displayName}</Text>
-                                                <Ionicons
-                                                    name={hasAllergyMatch ? 'alert-circle' : 'checkmark-circle'}
-                                                    size={20}
-                                                    color={hasAllergyMatch ? '#dc2626' : '#16a34a'}
-                                                />
+                                                <RiskIndicator level={riskLevel} />
                                             </View>
                                         );
                                     })}

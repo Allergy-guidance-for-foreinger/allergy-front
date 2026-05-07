@@ -133,6 +133,7 @@ export const logoutFromServer = async (): Promise<void> => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ refreshToken }),
         });
+        console.log('로그아웃');
     } catch (error) {
         console.warn('logoutFromServer failed:', error);
     }

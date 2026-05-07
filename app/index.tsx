@@ -19,6 +19,8 @@ export default function LoginScreen() {
         });
     }, []);
 
+
+
     const handleGoogleLogin = async () => {
         try {
             await GoogleSignin.hasPlayServices();

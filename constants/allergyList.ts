@@ -36,9 +36,9 @@ const ALLERGY_GROUPS_SOURCE: Array<Pick<AllergyGroup, 'id' | 'title' | 'subtitle
         title: 'Meat',
         subtitle: 'Pork, chicken, and beef',
         items: [
-            { id: 'pork', label: 'Pork', apiCode: 'PORK', keywords: ['돼지고기', 'pork'] },
-            { id: 'chicken', label: 'Chicken', apiCode: 'CHICKEN', keywords: ['닭고기', 'chicken'] },
-            { id: 'beef', label: 'Beef', apiCode: 'BEEF', keywords: ['쇠고기', 'beef'] },
+            { id: 'pork', label: 'Pork', apiCode: 'PORK', keywords: ['돼지고기', '돼지', '제육', 'pork'] },
+            { id: 'chicken', label: 'Chicken', apiCode: 'CHICKEN', keywords: ['닭고기', '닭', '치킨', 'chicken'] },
+            { id: 'beef', label: 'Beef', apiCode: 'BEEF', keywords: ['쇠고기', '소고기', 'beef'] },
         ],
     },
     {
@@ -46,8 +46,8 @@ const ALLERGY_GROUPS_SOURCE: Array<Pick<AllergyGroup, 'id' | 'title' | 'subtitle
         title: 'Dairy & Eggs',
         subtitle: 'Milk and egg products',
         items: [
-            { id: 'egg', label: 'Egg', apiCode: 'EGG', keywords: ['난류', 'egg'] },
-            { id: 'milk', label: 'Milk', apiCode: 'MILK', keywords: ['우유', 'milk'] },
+            { id: 'egg', label: 'Egg', apiCode: 'EGG', keywords: ['난류', '계란', '달걀', 'egg'] },
+            { id: 'milk', label: 'Milk', apiCode: 'MILK', keywords: ['우유', '유제품', 'milk', 'dairy'] },
         ],
     },
     {

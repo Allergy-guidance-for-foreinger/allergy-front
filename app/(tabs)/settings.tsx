@@ -6,6 +6,7 @@ import {useAppStore} from "@/store/useAppStore";
 import { ActionButton } from '@/components/ui/action-button';
 import * as SecureStore from 'expo-secure-store';
 import { logoutFromServer } from '@/api/auth';
+import { getWeeklyMeals } from '@/api/cafeteria';
 const SETTINGS_MENU = [
     { id: 'country', title: 'Country Settings', icon: 'earth-outline', path: '/settings/country' },
     { id: 'school', title: 'School Settings', icon: 'school-outline', path: '/settings/school' },
@@ -25,6 +26,22 @@ export default function SettingsScreen() {
         } finally {
             resetProfile();
             setLoggedIn(false);
+        }
+    };
+
+    const handleLoadWeekly = async () => {
+        try {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            const dateStr = `${yyyy}-${mm}-${dd}`;
+            console.log('[weekly-meals] 요청: cafeteriaId=1, weekStartDate=', dateStr);
+
+            const response = await getWeeklyMeals(1, dateStr);
+            console.log('[weekly-meals] response =', JSON.stringify(response, null, 2));
+        } catch (error) {
+            console.warn('[weekly-meals] 호출 실패:', error);
         }
     };
 
@@ -49,7 +66,10 @@ export default function SettingsScreen() {
                     ))}
                 </ScrollView>
             </View>
-            <View className="px-5 pb-5 items-center">
+            <View className="px-5 pb-5 items-center gap-3">
+                <ActionButton onPress={handleLoadWeekly}>
+                    Weekly
+                </ActionButton>
                 <ActionButton onPress={handleLogout}>
                     Log Out
                 </ActionButton>
