@@ -15,7 +15,8 @@ import {
     type ServerMenuDetail,
 } from '@/api/cafeteria';
 import type { SuccessResponse } from '@/api/client';
-import { getAllergyByCode } from '@/constants/allergyList';
+import { getLocalizedLabelByCode } from '@/constants/allergyList';
+import { useAppStore } from '@/store/useAppStore';
 import { useTranslation, t as tFn } from '@/lib/i18n';
 
 type MenuDetailData = SuccessResponse<ServerMenuDetail> | undefined;
@@ -32,6 +33,7 @@ export default function MealDetailScreen() {
     const targetMealMenuId = parseInt(String(params.mealMenuId ?? ''), 10);
     const mealType = String(params.mealType ?? 'LUNCH');
     const t = useTranslation();
+    const language = useAppStore((state) => state.language);
     const mealLabel = t(`meal.${mealType.toLowerCase()}`);
 
     const queryClient = useQueryClient();
@@ -50,6 +52,13 @@ export default function MealDetailScreen() {
     // ingredientCode가 있으면 그걸 우선, 없으면 allergyCode로 매칭 (ingredient.code와 비교)
     const matchedSet = new Set(
         (menu?.matchedAllergies ?? []).map((m) => m.ingredientCode ?? m.allergyCode)
+    );
+    // 재료 목록에는 없지만 사용자 알러지와 매칭된 코드들 — 별도 칩으로 표시해야 함.
+    // 예: 서버가 메뉴명에서 'shrimp paste'를 보고 SHRIMP 매칭은 했지만,
+    //     ingredients에는 EGG/MILK만 분석돼 들어온 경우.
+    const ingredientCodeSet = new Set(menu?.ingredients?.map((i) => i.code) ?? []);
+    const unlistedMatchedCodes = Array.from(matchedSet).filter(
+        (code): code is string => Boolean(code) && !ingredientCodeSet.has(code)
     );
 
     const liked = Boolean(menu?.like?.likedByMe);
@@ -154,36 +163,73 @@ export default function MealDetailScreen() {
                                     </Text>
                                 ) : null}
 
-                                {/* Row 3: ingredients ({code, source} 객체 배열).
-                                    matchedAllergies는 코드 배열이라 ingredient.code로 매칭 */}
-                                {menu.ingredients.length > 0 ? (
+                                {/* Row 3: 재료 + 매칭 알러지 칩. 리스크 높은 순으로 정렬:
+                                    [1] 재료엔 없지만 매칭된 알러지 (⚠ — 가장 위험: 사용자가 못 봄)
+                                    [2] 매칭된 재료 (빨강)
+                                    [3] 일반 재료 (회색) */}
+                                {menu.ingredients.length > 0 ||
+                                unlistedMatchedCodes.length > 0 ? (
                                     <View className="flex-row flex-wrap" style={{ gap: 8 }}>
-                                        {menu.ingredients.map((ingredient) => {
-                                            const isMatched = matchedSet.has(ingredient.code);
-                                            const label =
-                                                getAllergyByCode(ingredient.code)?.label ??
-                                                ingredient.code;
+                                        {/* [1] 재료엔 없지만 사용자 알러지와 매칭 — 최우선 노출 */}
+                                        {unlistedMatchedCodes.map((code) => {
+                                            const label = getLocalizedLabelByCode(code, language);
                                             return (
                                                 <View
-                                                    key={ingredient.code}
-                                                    className={`rounded-full px-3 py-1.5 border ${
-                                                        isMatched
-                                                            ? 'bg-red-100 border-red-300'
-                                                            : 'bg-white border-gray-200'
-                                                    }`}
+                                                    key={`matched-${code}`}
+                                                    className="flex-row items-center rounded-full px-3 py-1.5 border bg-red-100 border-red-300"
+                                                    style={{ gap: 4 }}
                                                 >
-                                                    <Text
-                                                        className={
-                                                            isMatched
-                                                                ? 'text-red-700 font-semibold'
-                                                                : 'text-gray-700'
-                                                        }
-                                                    >
+                                                    <Ionicons
+                                                        name="warning"
+                                                        size={14}
+                                                        color="#b91c1c"
+                                                    />
+                                                    <Text className="text-red-700 font-semibold">
                                                         {label}
                                                     </Text>
                                                 </View>
                                             );
                                         })}
+
+                                        {/* [2] 매칭된 재료 — 빨강 강조 */}
+                                        {menu.ingredients
+                                            .filter((ingredient) => matchedSet.has(ingredient.code))
+                                            .map((ingredient) => {
+                                                const label = getLocalizedLabelByCode(
+                                                    ingredient.code,
+                                                    language
+                                                );
+                                                return (
+                                                    <View
+                                                        key={ingredient.code}
+                                                        className="rounded-full px-3 py-1.5 border bg-red-100 border-red-300"
+                                                    >
+                                                        <Text className="text-red-700 font-semibold">
+                                                            {label}
+                                                        </Text>
+                                                    </View>
+                                                );
+                                            })}
+
+                                        {/* [3] 일반 재료 — 회색 */}
+                                        {menu.ingredients
+                                            .filter((ingredient) => !matchedSet.has(ingredient.code))
+                                            .map((ingredient) => {
+                                                const label = getLocalizedLabelByCode(
+                                                    ingredient.code,
+                                                    language
+                                                );
+                                                return (
+                                                    <View
+                                                        key={ingredient.code}
+                                                        className="rounded-full px-3 py-1.5 border bg-white border-gray-200"
+                                                    >
+                                                        <Text className="text-gray-700">
+                                                            {label}
+                                                        </Text>
+                                                    </View>
+                                                );
+                                            })}
                                     </View>
                                 ) : null}
                             </View>

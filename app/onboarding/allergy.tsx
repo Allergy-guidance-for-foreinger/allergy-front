@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ActionButton } from '../../components/ui/action-button';
 import { saveOnboardingProfile } from '@/api/onboarding';
 import { toAllergyCodes } from '@/constants/allergyList';
-import { toServerReligiousCode } from '@/data/religiousOptions';
+import { toServerReligiousCodes } from '@/data/religiousOptions';
 import { useState } from 'react';
 import { useTranslation, t as tFn } from '@/lib/i18n';
 
@@ -17,7 +17,7 @@ export default function AllergyScreen() {
     const language = useAppStore((state) => state.language);
     const country = useAppStore((state) => state.country);
     const schoolId = useAppStore((state) => state.schoolId);
-    const religiousCode = useAppStore((state) => state.religiousCode);
+    const religiousCodes = useAppStore((state) => state.religiousCodes);
     const allergies = useAppStore((state) => state.allergies);
     const setHasCompletedOnboarding = useAppStore((state) => state.setHasCompletedOnboarding);
 
@@ -35,7 +35,7 @@ export default function AllergyScreen() {
                 languageCode: language,
                 schoolId,
                 allergyCodes: toAllergyCodes(allergies),
-                religiousCode: toServerReligiousCode(religiousCode),
+                religiousCodes: toServerReligiousCodes(religiousCodes),
                 countryCode: country,
             });
 

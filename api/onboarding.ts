@@ -4,7 +4,8 @@ export interface OnboardingPayload {
     languageCode: string;
     schoolId: number;
     allergyCodes: string[];
-    religiousCode: string | null;
+    // 다중 종교 제한 — 빈 배열은 "제한 없음"으로 해석됨.
+    religiousCodes: string[];
     countryCode: string;
 }
 

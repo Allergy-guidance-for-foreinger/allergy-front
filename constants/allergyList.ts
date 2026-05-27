@@ -1,6 +1,7 @@
 export interface AllergyItem {
     id: string;
-    label: string;
+    label: string;        // canonical 영문 라벨 (store에는 항상 이 값으로 저장됨)
+    labelKo: string;      // 한국어 표시용
     apiCode: string;
     keywords: string[];
     groupId: string;
@@ -9,109 +10,127 @@ export interface AllergyItem {
 export interface AllergyGroup {
     id: string;
     title: string;
+    titleKo: string;      // 카테고리 제목 한국어
     subtitle: string;
+    subtitleKo: string;   // 카테고리 부제 한국어
     items: AllergyItem[];
 }
 
-const ALLERGY_GROUPS_SOURCE: Array<Pick<AllergyGroup, 'id' | 'title' | 'subtitle'> & { items: Array<Omit<AllergyItem, 'groupId'>> }> = [
+const ALLERGY_GROUPS_SOURCE: Array<Pick<AllergyGroup, 'id' | 'title' | 'titleKo' | 'subtitle' | 'subtitleKo'> & { items: Array<Omit<AllergyItem, 'groupId'>> }> = [
     {
         id: 'seafood',
         title: 'Seafood',
+        titleKo: '해산물',
         subtitle: 'Fish and shellfish',
+        subtitleKo: '생선과 갑각류',
         items: [
-            { id: 'mackerel', label: 'Mackerel', apiCode: 'MACKEREL', keywords: ['고등어', 'mackerel'] },
-            { id: 'crab', label: 'Crab', apiCode: 'CRAB', keywords: ['게', 'crab'] },
-            { id: 'shrimp', label: 'Shrimp', apiCode: 'SHRIMP', keywords: ['새우', 'shrimp'] },
-            { id: 'squid', label: 'Squid', apiCode: 'SQUID', keywords: ['오징어', 'squid'] },
-            { id: 'shellfish', label: 'Shellfish', apiCode: 'SHELLFISH', keywords: ['조개류', 'shellfish'] },
-            { id: 'clam', label: 'Clam', apiCode: 'CLAM', keywords: ['조개', 'clam'] },
-            { id: 'mussel', label: 'Mussel', apiCode: 'MUSSEL', keywords: ['홍합', 'mussel'] },
-            { id: 'oyster', label: 'Oyster', apiCode: 'OYSTER', keywords: ['굴', 'oyster'] },
-            { id: 'lobster', label: 'Lobster', apiCode: 'LOBSTER', keywords: ['랍스터', 'lobster'] },
-            { id: 'scallop', label: 'Scallop', apiCode: 'SCALLOP', keywords: ['가리비', 'scallop'] },
+            { id: 'mackerel', label: 'Mackerel', labelKo: '고등어', apiCode: 'MACKEREL', keywords: ['고등어', 'mackerel'] },
+            { id: 'crab', label: 'Crab', labelKo: '게', apiCode: 'CRAB', keywords: ['게', 'crab'] },
+            { id: 'shrimp', label: 'Shrimp', labelKo: '새우', apiCode: 'SHRIMP', keywords: ['새우', 'shrimp'] },
+            { id: 'squid', label: 'Squid', labelKo: '오징어', apiCode: 'SQUID', keywords: ['오징어', 'squid'] },
+            { id: 'shellfish', label: 'Shellfish', labelKo: '조개류', apiCode: 'SHELLFISH', keywords: ['조개류', 'shellfish'] },
+            { id: 'clam', label: 'Clam', labelKo: '조개', apiCode: 'CLAM', keywords: ['조개', 'clam'] },
+            { id: 'mussel', label: 'Mussel', labelKo: '홍합', apiCode: 'MUSSEL', keywords: ['홍합', 'mussel'] },
+            { id: 'oyster', label: 'Oyster', labelKo: '굴', apiCode: 'OYSTER', keywords: ['굴', 'oyster'] },
+            { id: 'lobster', label: 'Lobster', labelKo: '랍스터', apiCode: 'LOBSTER', keywords: ['랍스터', 'lobster'] },
+            { id: 'scallop', label: 'Scallop', labelKo: '가리비', apiCode: 'SCALLOP', keywords: ['가리비', 'scallop'] },
         ],
     },
     {
         id: 'meat',
         title: 'Meat',
+        titleKo: '육류',
         subtitle: 'Pork, chicken, and beef',
+        subtitleKo: '돼지, 닭, 소고기',
         items: [
-            { id: 'pork', label: 'Pork', apiCode: 'PORK', keywords: ['돼지고기', '돼지', '제육', 'pork'] },
-            { id: 'chicken', label: 'Chicken', apiCode: 'CHICKEN', keywords: ['닭고기', '닭', '치킨', 'chicken'] },
-            { id: 'beef', label: 'Beef', apiCode: 'BEEF', keywords: ['쇠고기', '소고기', 'beef'] },
+            { id: 'pork', label: 'Pork', labelKo: '돼지고기', apiCode: 'PORK', keywords: ['돼지고기', '돼지', '제육', 'pork'] },
+            { id: 'chicken', label: 'Chicken', labelKo: '닭고기', apiCode: 'CHICKEN', keywords: ['닭고기', '닭', '치킨', 'chicken'] },
+            { id: 'beef', label: 'Beef', labelKo: '쇠고기', apiCode: 'BEEF', keywords: ['쇠고기', '소고기', 'beef'] },
         ],
     },
     {
         id: 'dairy-eggs',
         title: 'Dairy & Eggs',
+        titleKo: '유제품·계란',
         subtitle: 'Milk and egg products',
+        subtitleKo: '우유와 계란 관련',
         items: [
-            { id: 'egg', label: 'Egg', apiCode: 'EGG', keywords: ['난류', '계란', '달걀', 'egg'] },
-            { id: 'milk', label: 'Milk', apiCode: 'MILK', keywords: ['우유', '유제품', 'milk', 'dairy'] },
+            { id: 'egg', label: 'Egg', labelKo: '계란', apiCode: 'EGG', keywords: ['난류', '계란', '달걀', 'egg'] },
+            { id: 'milk', label: 'Milk', labelKo: '우유', apiCode: 'MILK', keywords: ['우유', '유제품', 'milk', 'dairy'] },
         ],
     },
     {
         id: 'grains-beans-nuts',
         title: 'Beans, Grains & Nuts',
+        titleKo: '콩·곡물·견과류',
         subtitle: 'Common pantry allergens',
+        subtitleKo: '주방에서 흔한 알러지 식재료',
         items: [
-            { id: 'peanut', label: 'Peanut', apiCode: 'PEANUT', keywords: ['땅콩', 'peanut'] },
-            { id: 'soybean', label: 'Soybean', apiCode: 'SOYBEAN', keywords: ['대두', 'soybean'] },
-            { id: 'wheat', label: 'Wheat', apiCode: 'WHEAT', keywords: ['밀', 'wheat'] },
-            { id: 'buckwheat', label: 'Buckwheat', apiCode: 'BUCKWHEAT', keywords: ['메밀', 'buckwheat'] },
-            { id: 'oats', label: 'Oats', apiCode: 'OATS', keywords: ['귀리', 'oats'] },
-            { id: 'rye', label: 'Rye', apiCode: 'RYE', keywords: ['호밀', 'rye'] },
-            { id: 'barley', label: 'Barley', apiCode: 'BARLEY', keywords: ['보리', 'barley'] },
-            { id: 'tree-nut', label: 'Tree Nut', apiCode: 'TREE_NUT', keywords: ['견과류', 'tree nut', 'tree nuts'] },
-            { id: 'walnut', label: 'Walnut', apiCode: 'WALNUT', keywords: ['호두', 'walnut'] },
-            { id: 'almond', label: 'Almond', apiCode: 'ALMOND', keywords: ['아몬드', 'almond'] },
-            { id: 'hazelnut', label: 'Hazelnut', apiCode: 'HAZELNUT', keywords: ['헤이즐넛', 'hazelnut'] },
-            { id: 'cashew', label: 'Cashew', apiCode: 'CASHEW', keywords: ['캐슈너트', 'cashew'] },
-            { id: 'pistachio', label: 'Pistachio', apiCode: 'PISTACHIO', keywords: ['피스타치오', 'pistachio'] },
-            { id: 'pecan', label: 'Pecan', apiCode: 'PECAN', keywords: ['피칸', 'pecan'] },
-            { id: 'brazil-nut', label: 'Brazil Nut', apiCode: 'BRAZIL_NUT', keywords: ['브라질너트', 'brazil nut'] },
-            { id: 'macadamia', label: 'Macadamia', apiCode: 'MACADAMIA', keywords: ['마카다미아', 'macadamia'] },
-            { id: 'pine-nut', label: 'Pine Nut', apiCode: 'PINE_NUT', keywords: ['잣', 'pine nut'] },
+            { id: 'peanut', label: 'Peanut', labelKo: '땅콩', apiCode: 'PEANUT', keywords: ['땅콩', 'peanut'] },
+            { id: 'soybean', label: 'Soybean', labelKo: '대두', apiCode: 'SOYBEAN', keywords: ['대두', 'soybean'] },
+            { id: 'wheat', label: 'Wheat', labelKo: '밀', apiCode: 'WHEAT', keywords: ['밀', 'wheat'] },
+            { id: 'buckwheat', label: 'Buckwheat', labelKo: '메밀', apiCode: 'BUCKWHEAT', keywords: ['메밀', 'buckwheat'] },
+            { id: 'oats', label: 'Oats', labelKo: '귀리', apiCode: 'OATS', keywords: ['귀리', 'oats'] },
+            { id: 'rye', label: 'Rye', labelKo: '호밀', apiCode: 'RYE', keywords: ['호밀', 'rye'] },
+            { id: 'barley', label: 'Barley', labelKo: '보리', apiCode: 'BARLEY', keywords: ['보리', 'barley'] },
+            { id: 'tree-nut', label: 'Tree Nut', labelKo: '견과류', apiCode: 'TREE_NUT', keywords: ['견과류', 'tree nut', 'tree nuts'] },
+            { id: 'walnut', label: 'Walnut', labelKo: '호두', apiCode: 'WALNUT', keywords: ['호두', 'walnut'] },
+            { id: 'almond', label: 'Almond', labelKo: '아몬드', apiCode: 'ALMOND', keywords: ['아몬드', 'almond'] },
+            { id: 'hazelnut', label: 'Hazelnut', labelKo: '헤이즐넛', apiCode: 'HAZELNUT', keywords: ['헤이즐넛', 'hazelnut'] },
+            { id: 'cashew', label: 'Cashew', labelKo: '캐슈너트', apiCode: 'CASHEW', keywords: ['캐슈너트', 'cashew'] },
+            { id: 'pistachio', label: 'Pistachio', labelKo: '피스타치오', apiCode: 'PISTACHIO', keywords: ['피스타치오', 'pistachio'] },
+            { id: 'pecan', label: 'Pecan', labelKo: '피칸', apiCode: 'PECAN', keywords: ['피칸', 'pecan'] },
+            { id: 'brazil-nut', label: 'Brazil Nut', labelKo: '브라질너트', apiCode: 'BRAZIL_NUT', keywords: ['브라질너트', 'brazil nut'] },
+            { id: 'macadamia', label: 'Macadamia', labelKo: '마카다미아', apiCode: 'MACADAMIA', keywords: ['마카다미아', 'macadamia'] },
+            { id: 'pine-nut', label: 'Pine Nut', labelKo: '잣', apiCode: 'PINE_NUT', keywords: ['잣', 'pine nut'] },
         ],
     },
     {
         id: 'fruits',
         title: 'Fruits',
+        titleKo: '과일',
         subtitle: 'Common fruit allergens',
+        subtitleKo: '흔한 과일 알러지',
         items: [
-            { id: 'peach', label: 'Peach', apiCode: 'PEACH', keywords: ['복숭아', 'peach'] },
-            { id: 'mango', label: 'Mango', apiCode: 'MANGO', keywords: ['망고', 'mango'] },
-            { id: 'avocado', label: 'Avocado', apiCode: 'AVOCADO', keywords: ['아보카도', 'avocado'] },
-            { id: 'banana', label: 'Banana', apiCode: 'BANANA', keywords: ['바나나', 'banana'] },
-            { id: 'kiwi', label: 'Kiwi', apiCode: 'KIWI', keywords: ['키위', 'kiwi'] },
+            { id: 'peach', label: 'Peach', labelKo: '복숭아', apiCode: 'PEACH', keywords: ['복숭아', 'peach'] },
+            { id: 'mango', label: 'Mango', labelKo: '망고', apiCode: 'MANGO', keywords: ['망고', 'mango'] },
+            { id: 'avocado', label: 'Avocado', labelKo: '아보카도', apiCode: 'AVOCADO', keywords: ['아보카도', 'avocado'] },
+            { id: 'banana', label: 'Banana', labelKo: '바나나', apiCode: 'BANANA', keywords: ['바나나', 'banana'] },
+            { id: 'kiwi', label: 'Kiwi', labelKo: '키위', apiCode: 'KIWI', keywords: ['키위', 'kiwi'] },
         ],
     },
     {
         id: 'vegetables',
         title: 'Vegetables',
+        titleKo: '채소',
         subtitle: 'Vegetables and plant condiments',
+        subtitleKo: '채소와 식물성 조미료',
         items: [
-            { id: 'tomato', label: 'Tomato', apiCode: 'TOMATO', keywords: ['토마토', 'tomato'] },
-            { id: 'celery', label: 'Celery', apiCode: 'CELERY', keywords: ['셀러리', 'celery'] },
-            { id: 'mustard', label: 'Mustard', apiCode: 'MUSTARD', keywords: ['머스타드', 'mustard'] },
+            { id: 'tomato', label: 'Tomato', labelKo: '토마토', apiCode: 'TOMATO', keywords: ['토마토', 'tomato'] },
+            { id: 'celery', label: 'Celery', labelKo: '셀러리', apiCode: 'CELERY', keywords: ['셀러리', 'celery'] },
+            { id: 'mustard', label: 'Mustard', labelKo: '머스타드', apiCode: 'MUSTARD', keywords: ['머스타드', '겨자', 'mustard'] },
         ],
     },
     {
         id: 'additives',
         title: 'Additives',
+        titleKo: '첨가물',
         subtitle: 'Processing and seasoning related allergens',
+        subtitleKo: '가공·조미 관련 알러지',
         items: [
-            { id: 'sulfites', label: 'Sulfites', apiCode: 'SULFITES', keywords: ['아황산류', 'sulfites'] },
-            { id: 'sesame', label: 'Sesame', apiCode: 'SESAME', keywords: ['참깨', 'sesame'] },
-            { id: 'lupin', label: 'Lupin', apiCode: 'LUPIN', keywords: ['루핀', 'lupin'] },
+            { id: 'sulfites', label: 'Sulfites', labelKo: '아황산류', apiCode: 'SULFITES', keywords: ['아황산류', 'sulfites'] },
+            { id: 'sesame', label: 'Sesame', labelKo: '참깨', apiCode: 'SESAME', keywords: ['참깨', 'sesame'] },
+            { id: 'lupin', label: 'Lupin', labelKo: '루핀', apiCode: 'LUPIN', keywords: ['루핀', 'lupin'] },
         ],
     },
     {
         id: 'other',
         title: 'Other',
+        titleKo: '기타',
         subtitle: 'Other allergens',
+        subtitleKo: '기타 알러지',
         items: [
-            { id: 'latex-related', label: 'Latex-related foods', apiCode: 'LATEX_RELATED', keywords: ['라텍스', 'latex'] },
+            { id: 'latex-related', label: 'Latex-related foods', labelKo: '라텍스 관련 식품', apiCode: 'LATEX_RELATED', keywords: ['라텍스', 'latex'] },
         ],
     },
 ];
@@ -205,12 +224,53 @@ export function getAllergyByCode(code: string): AllergyItem | undefined {
     return ALLERGY_BY_CODE.get(code);
 }
 
-const OTHER_GROUP_TEMPLATE: Pick<AllergyGroup, 'id' | 'title' | 'subtitle'> = ALLERGY_GROUPS.find(
+// 언어별 라벨 헬퍼 — 'ko'면 한국어, 그 외엔 영문 canonical 라벨.
+export function getLocalizedAllergyLabel(item: AllergyItem, lang?: string): string {
+    return lang === 'ko' ? item.labelKo : item.label;
+}
+
+// canonical 영문 라벨로부터 현재 언어에 맞는 표시 라벨 얻기.
+// store에는 영문 라벨이 저장되므로 화면 표시 시 이 함수로 변환.
+export function getLocalizedLabel(canonicalLabel: string, lang?: string): string {
+    const item = ALLERGY_BY_LABEL.get(canonicalLabel);
+    if (item) return getLocalizedAllergyLabel(item, lang);
+    return canonicalLabel; // 매칭 안 되면 그대로 (서버 신규 코드 등)
+}
+
+// API 코드로부터 현재 언어에 맞는 표시 라벨 얻기 (메뉴 상세의 재료 칩에서 사용).
+export function getLocalizedLabelByCode(code: string, lang?: string): string {
+    const item = ALLERGY_BY_CODE.get(code);
+    if (item) return getLocalizedAllergyLabel(item, lang);
+    return code;
+}
+
+// 그룹 제목/부제 한국어 변환.
+export function getLocalizedGroupTitle(group: AllergyGroup, lang?: string): string {
+    return lang === 'ko' ? group.titleKo : group.title;
+}
+export function getLocalizedGroupSubtitle(group: AllergyGroup, lang?: string): string {
+    return lang === 'ko' ? group.subtitleKo : group.subtitle;
+}
+
+// 그룹 안 아이템을 현재 언어 라벨 기준 사전순으로 정렬.
+// 한국어는 'ko' 로케일로 정렬해야 가나다순(ㄱ→ㅎ) 정확함.
+export function sortAllergyItemsByLocale(items: AllergyItem[], lang?: string): AllergyItem[] {
+    const locale = lang === 'ko' ? 'ko' : 'en';
+    return items.slice().sort((a, b) => {
+        const aLabel = getLocalizedAllergyLabel(a, lang);
+        const bLabel = getLocalizedAllergyLabel(b, lang);
+        return aLabel.localeCompare(bLabel, locale);
+    });
+}
+
+const OTHER_GROUP_TEMPLATE: Pick<AllergyGroup, 'id' | 'title' | 'titleKo' | 'subtitle' | 'subtitleKo'> = ALLERGY_GROUPS.find(
     (group) => group.id === 'other'
 ) ?? {
     id: 'other',
     title: 'Other',
+    titleKo: '기타',
     subtitle: 'Other allergens',
+    subtitleKo: '기타 알러지',
 };
 
 export interface ServerAllergyItem {
@@ -223,10 +283,19 @@ export interface ServerAllergyItem {
 export function buildAllergyGroupsFromServer(serverItems: ServerAllergyItem[]): AllergyGroup[] {
     const groupsMap = new Map<string, AllergyGroup>();
 
-    const ensureGroup = (template: Pick<AllergyGroup, 'id' | 'title' | 'subtitle'>): AllergyGroup => {
+    const ensureGroup = (
+        template: Pick<AllergyGroup, 'id' | 'title' | 'titleKo' | 'subtitle' | 'subtitleKo'>
+    ): AllergyGroup => {
         let group = groupsMap.get(template.id);
         if (!group) {
-            group = { id: template.id, title: template.title, subtitle: template.subtitle, items: [] };
+            group = {
+                id: template.id,
+                title: template.title,
+                titleKo: template.titleKo,
+                subtitle: template.subtitle,
+                subtitleKo: template.subtitleKo,
+                items: [],
+            };
             groupsMap.set(template.id, group);
         }
         return group;
@@ -246,12 +315,15 @@ export function buildAllergyGroupsFromServer(serverItems: ServerAllergyItem[]): 
             }
         }
 
-        // 알려지지 않은 서버 코드 → Other 그룹에 즉석 항목 생성
+        // 알려지지 않은 서버 코드 → Other 그룹에 즉석 항목 생성.
+        // 서버가 한국어 라벨을 주지 않으므로 labelKo도 동일값으로 폴백.
+        const fallbackName = serverItem.name ?? upper;
         const synthesized: AllergyItem = {
             id: upper.toLowerCase().replace(/_/g, '-'),
-            label: serverItem.name ?? upper,
+            label: fallbackName,
+            labelKo: fallbackName,
             apiCode: upper,
-            keywords: [(serverItem.name ?? upper).toLowerCase(), upper.toLowerCase()],
+            keywords: [fallbackName.toLowerCase(), upper.toLowerCase()],
             groupId: OTHER_GROUP_TEMPLATE.id,
         };
         ensureGroup(OTHER_GROUP_TEMPLATE).items.push(synthesized);

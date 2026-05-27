@@ -11,7 +11,7 @@ export async function getSchoolSetting() {
 }
 
 export async function getReligionSetting() {
-    return requestJson<{ religiousCode: string | null }>('/api/v1/settings/religion', { method: 'GET' });
+    return requestJson<{ religiousCodes: string[] }>('/api/v1/settings/religion', { method: 'GET' });
 }
 
 export async function getLanguageSetting() {
@@ -37,10 +37,10 @@ export async function updateSchoolSetting(schoolId: number) {
     });
 }
 
-export async function updateReligionSetting(religiousCode: string | null) {
-    return requestJson<{ religiousCode: string | null }>('/api/v1/settings/religion', {
+export async function updateReligionSetting(religiousCodes: string[]) {
+    return requestJson<{ religiousCodes: string[] }>('/api/v1/settings/religion', {
         method: 'PATCH',
-        body: JSON.stringify({ religiousCode }),
+        body: JSON.stringify({ religiousCodes }),
     });
 }
 
@@ -134,8 +134,8 @@ export async function loadCurrentUserSettings() {
         languageCode: languageResult.status === 'fulfilled' ? languageResult.value.data.languageCode : undefined,
         countryCode: countryResult.status === 'fulfilled' ? countryResult.value.data.countryCode : undefined,
         schoolId: schoolResult.status === 'fulfilled' ? schoolResult.value.data.schoolId : undefined,
-        religiousCode:
-            religionResult.status === 'fulfilled' ? religionResult.value.data.religiousCode ?? undefined : undefined,
+        religiousCodes:
+            religionResult.status === 'fulfilled' ? religionResult.value.data.religiousCodes : undefined,
         allergyCodes: allergyResult.status === 'fulfilled' ? allergyResult.value.data.allergyCodes : undefined,
     };
 }

@@ -6,10 +6,20 @@ import {
     ALLERGY_GROUPS,
     buildAllergyGroupsFromServer,
     getAllergyByCode,
+    getLocalizedAllergyLabel,
+    getLocalizedGroupSubtitle,
+    getLocalizedGroupTitle,
+    getLocalizedLabel,
     normalizeAllergies,
+    sortAllergyItemsByLocale,
     toAllergyCodes,
 } from '@/constants/allergyList';
-import { RELIGIOUS_OPTIONS, getReligiousOptionByCode, toServerReligiousCode } from '@/data/religiousOptions';
+import {
+    SELECTABLE_RELIGIOUS_OPTIONS,
+    getReligiousOptionByCode,
+    normalizeReligiousCodes,
+    toServerReligiousCodes,
+} from '@/data/religiousOptions';
 import {
     getAllergySetting,
     updateAllergySetting,
@@ -22,7 +32,8 @@ import { useTranslation, t as tFn } from '@/lib/i18n';
 
 type ReligionChoice = { code: string; label: string };
 
-const FALLBACK_RELIGION_CHOICES: ReligionChoice[] = RELIGIOUS_OPTIONS.map((option) => ({
+// 사용자에게 보여줄 토글 옵션 ('NONE' 제외 — 선택 해제가 곧 '제한 없음').
+const FALLBACK_RELIGION_CHOICES: ReligionChoice[] = SELECTABLE_RELIGIOUS_OPTIONS.map((option) => ({
     code: option.code,
     label: option.label,
 }));
@@ -42,10 +53,11 @@ export default function AllergySettings({
 }: AllergySettingsProps) {
     const t = useTranslation();
     const queryClient = useQueryClient();
+    const language = useAppStore((state) => state.language);
     const allergies = useAppStore((state) => state.allergies);
     const setAllergies = useAppStore((state) => state.setAllergies);
-    const religiousCode = useAppStore((state) => state.religiousCode);
-    const setReligiousCode = useAppStore((state) => state.setReligiousCode);
+    const religiousCodes = useAppStore((state) => state.religiousCodes);
+    const setReligiousCodes = useAppStore((state) => state.setReligiousCodes);
     const [isSyncingAllergies, setIsSyncingAllergies] = useState(false);
     const [isSyncingReligion, setIsSyncingReligion] = useState(false);
 
@@ -57,10 +69,13 @@ export default function AllergySettings({
     };
     const resolvedTitle = title ?? t('allergy.title');
     const resolvedSubtitle = subtitle ?? t('allergy.subtitle');
-    const NONE_RELIGION_CHOICE: ReligionChoice = { code: 'NONE', label: t('allergy.noRestriction') };
 
     const normalizedAllergies = useMemo(() => normalizeAllergies(allergies), [allergies]);
-    const selectedReligiousOption = useMemo(() => getReligiousOptionByCode(religiousCode), [religiousCode]);
+    // 다중 종교 — 모든 입력은 normalizeReligiousCodes로 깨끗하게 (대문자/중복 제거).
+    const normalizedReligiousCodes = useMemo(
+        () => normalizeReligiousCodes(religiousCodes),
+        [religiousCodes]
+    );
 
     const { data: religionOptionsResponse } = useQuery({
         queryKey: ['religionOptions'],
@@ -71,10 +86,10 @@ export default function AllergySettings({
     const religionChoices: ReligionChoice[] = useMemo(() => {
         const serverOptions = religionOptionsResponse?.data?.religions;
         if (serverOptions && serverOptions.length > 0) {
-            return [
-                NONE_RELIGION_CHOICE,
-                ...serverOptions.map((option) => ({ code: option.code, label: option.name })),
-            ];
+            // 서버가 'NONE' 옵션을 줘도 사용자 UI에선 제외 (선택 해제가 곧 NONE).
+            return serverOptions
+                .filter((option) => option.code !== 'NONE')
+                .map((option) => ({ code: option.code, label: option.name }));
         }
         return FALLBACK_RELIGION_CHOICES;
     }, [religionOptionsResponse]);
@@ -92,6 +107,17 @@ export default function AllergySettings({
         }
         return ALLERGY_GROUPS;
     }, [allergyOptionsResponse]);
+
+    // 현재 언어 기준으로 각 그룹의 아이템을 사전순으로 정렬.
+    // 'en'은 알파벳, 'ko'는 가나다순 — localeCompare가 자동 처리.
+    const sortedAllergyGroups = useMemo(
+        () =>
+            displayedAllergyGroups.map((group) => ({
+                ...group,
+                items: sortAllergyItemsByLocale(group.items, language),
+            })),
+        [displayedAllergyGroups, language]
+    );
 
     // 서버가 지원하지 않는 라벨이 zustand에 남아있으면 자동 제거.
     // (이전 버전의 클라이언트가 저장해둔 Clam/Sesame 같은 deprecated 항목 정리)
@@ -137,8 +163,8 @@ export default function AllergySettings({
                     setAllergies(allergyResult.data.allergyCodes);
                 }
 
-                if (typeof religionResult?.data?.religiousCode === 'string' || religionResult?.data?.religiousCode === null) {
-                    setReligiousCode(religionResult.data.religiousCode ?? 'NONE');
+                if (Array.isArray(religionResult?.data?.religiousCodes)) {
+                    setReligiousCodes(religionResult.data.religiousCodes);
                 }
             } catch (error) {
                 console.warn('Failed to load allergy/religion settings:', error);
@@ -150,7 +176,7 @@ export default function AllergySettings({
         return () => {
             mounted = false;
         };
-    }, [persistToServer, setAllergies, setReligiousCode]);
+    }, [persistToServer, setAllergies, setReligiousCodes]);
 
     const toggleAllergy = async (selectedLabel: string) => {
         const nextAllergies = normalizedAllergies.includes(selectedLabel)
@@ -174,20 +200,24 @@ export default function AllergySettings({
         }
     };
 
+    // 종교 다중 토글 — 알러지와 동일한 패턴. 빈 배열은 "제한 없음".
     const handleReligiousSelect = async (code: string) => {
-        const nextCode = selectedReligiousOption.code === code ? 'NONE' : code;
-        const previousCode = religiousCode;
-        setReligiousCode(nextCode);
+        const nextCodes = normalizedReligiousCodes.includes(code)
+            ? normalizedReligiousCodes.filter((c) => c !== code)
+            : [...normalizedReligiousCodes, code];
+
+        const previousCodes = normalizedReligiousCodes;
+        setReligiousCodes(nextCodes);
 
         if (!persistToServer) return;
 
         try {
             setIsSyncingReligion(true);
-            await updateReligionSetting(toServerReligiousCode(nextCode));
+            await updateReligionSetting(toServerReligiousCodes(nextCodes));
             // 종교 변경도 위험도 계산에 영향 → 메뉴 캐시 무효화
             invalidateMenuCaches();
         } catch (error: any) {
-            setReligiousCode(previousCode);
+            setReligiousCodes(previousCodes);
             Alert.alert(tFn('allergy.religionUpdateFailed'), error?.message ?? tFn('common.tryAgain'));
         } finally {
             setIsSyncingReligion(false);
@@ -216,13 +246,17 @@ export default function AllergySettings({
                     <Text className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
                         {t('allergy.religious')}
                     </Text>
-                    {selectedReligiousOption.code === 'NONE' ? (
+                    {normalizedReligiousCodes.length === 0 ? (
                         <Text className="text-sm text-gray-400">{t('allergy.noReligiousSelected')}</Text>
                     ) : (
                         <View className="flex-row flex-wrap gap-2">
-                            <View className="rounded-full bg-blue-500 px-3 py-2">
-                                <Text className="text-xs font-semibold text-white">{selectedReligiousOption.label}</Text>
-                            </View>
+                            {normalizedReligiousCodes.map((code) => (
+                                <View key={code} className="rounded-full bg-blue-500 px-3 py-2">
+                                    <Text className="text-xs font-semibold text-white">
+                                        {getReligiousOptionByCode(code).label}
+                                    </Text>
+                                </View>
+                            ))}
                         </View>
                     )}
                 </View>
@@ -234,7 +268,9 @@ export default function AllergySettings({
                         <View className="flex-row flex-wrap gap-2">
                             {normalizedAllergies.map((allergy) => (
                                 <View key={allergy} className="rounded-full bg-blue-500 px-3 py-2">
-                                    <Text className="text-xs font-semibold text-white">{allergy}</Text>
+                                    <Text className="text-xs font-semibold text-white">
+                                        {getLocalizedLabel(allergy, language)}
+                                    </Text>
                                 </View>
                             ))}
                         </View>
@@ -246,7 +282,9 @@ export default function AllergySettings({
 
             <View
                 className={`mb-6 rounded-[28px] border px-4 py-4 ${
-                    selectedReligiousOption.code !== 'NONE' ? 'border-blue-200 bg-blue-50/40' : 'border-gray-200 bg-white'
+                    normalizedReligiousCodes.length > 0
+                        ? 'border-blue-200 bg-blue-50/40'
+                        : 'border-gray-200 bg-white'
                 }`}
             >
                 <View className="mb-4">
@@ -256,7 +294,7 @@ export default function AllergySettings({
 
                 <View className="flex-row flex-wrap gap-3">
                     {religionChoices.map((option) => {
-                        const isSelected = selectedReligiousOption.code === option.code;
+                        const isSelected = normalizedReligiousCodes.includes(option.code);
 
                         return (
                             <TouchableOpacity
@@ -276,8 +314,10 @@ export default function AllergySettings({
                 </View>
             </View>
 
-            {displayedAllergyGroups.map((group) => {
-                const groupHasSelection = group.items.some((item) => normalizedAllergies.includes(item.label));
+            {sortedAllergyGroups.map((group) => {
+                const groupHasSelection = group.items.some((item) =>
+                    normalizedAllergies.includes(item.label)
+                );
 
                 return (
                     <View
@@ -287,13 +327,19 @@ export default function AllergySettings({
                         }`}
                     >
                         <View className="mb-4">
-                            <Text className="text-lg font-bold text-gray-900">{group.title}</Text>
-                            <Text className="text-sm text-gray-500 mt-1">{group.subtitle}</Text>
+                            <Text className="text-lg font-bold text-gray-900">
+                                {getLocalizedGroupTitle(group, language)}
+                            </Text>
+                            <Text className="text-sm text-gray-500 mt-1">
+                                {getLocalizedGroupSubtitle(group, language)}
+                            </Text>
                         </View>
 
                         <View className="flex-row flex-wrap gap-3">
                             {group.items.map((item) => {
+                                // store에는 canonical 영문 라벨만 저장. 화면 표시는 언어별로 변환.
                                 const isSelected = normalizedAllergies.includes(item.label);
+                                const displayLabel = getLocalizedAllergyLabel(item, language);
 
                                 return (
                                     <TouchableOpacity
@@ -309,7 +355,7 @@ export default function AllergySettings({
                                                 isSelected ? 'text-white' : 'text-gray-700'
                                             }`}
                                         >
-                                            {item.label}
+                                            {displayLabel}
                                         </Text>
                                     </TouchableOpacity>
                                 );
