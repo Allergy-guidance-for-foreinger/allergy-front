@@ -100,17 +100,14 @@ const en: TranslationDict = {
     // 번역 탭
     'translate.title': 'Translate',
     'translate.description':
-        'Type your question in {language}, then show the Korean result to staff.',
-    'translate.selectedCountry': 'Selected country',
-    'translate.noCountrySelected': 'No country selected yet.',
-    'translate.countryHint': 'Choose one in Settings to improve the translation hint.',
-    'translate.selectCountry': 'Select country',
+        'Type your question in any language, then show the Korean result to staff.',
     'translate.question': 'Question',
-    'translate.placeholder': 'Type your question in {language}',
+    'translate.placeholder': 'Type your question in any language',
     'translate.button': 'Translate to Korean',
+    'translate.translating': 'Translating...',
+    'translate.failed': 'Translation failed',
     'translate.koreanResult': 'Korean result',
     'translate.translatedPlaceholder': 'Your translated message will appear here.',
-    'translate.yourLanguage': 'your language',
 
     // 알러지 / 종교 설정
     'allergy.title': 'Allergy Categories',
@@ -255,17 +252,14 @@ const ko: TranslationDict = {
 
     'translate.title': '번역',
     'translate.description':
-        '{language}로 질문을 입력하면, 한국어 결과를 직원에게 보여줄 수 있어요.',
-    'translate.selectedCountry': '선택된 국가',
-    'translate.noCountrySelected': '아직 선택된 국가가 없습니다.',
-    'translate.countryHint': '설정에서 국가를 선택하면 번역 힌트가 더 정확해집니다.',
-    'translate.selectCountry': '국가 선택',
+        '어떤 언어로든 질문을 입력하면, 한국어 결과를 직원에게 보여줄 수 있어요.',
     'translate.question': '질문',
-    'translate.placeholder': '{language}로 질문을 입력하세요',
+    'translate.placeholder': '어떤 언어로든 질문을 입력하세요',
     'translate.button': '한국어로 번역',
+    'translate.translating': '번역 중...',
+    'translate.failed': '번역에 실패했습니다',
     'translate.koreanResult': '한국어 결과',
     'translate.translatedPlaceholder': '번역된 메시지가 여기에 표시됩니다.',
-    'translate.yourLanguage': '본인 언어',
 
     'allergy.title': '알러지 카테고리',
     'allergy.subtitle': '피해야 할 식재료 카테고리를 모두 탭하세요.',
