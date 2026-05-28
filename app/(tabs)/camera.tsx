@@ -1,5 +1,6 @@
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
+    ActivityIndicator,
     Alert,
     Linking,
     Platform,
@@ -9,9 +10,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions, type CameraType } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
-import { useCallback } from 'react';
+import type { BottomSheetModal } from '@gorhom/bottom-sheet';
+import ScanResultSheet from '@/components/scan-result-sheet';
+import { analyzeFoodImage, type FoodAnalysisResult } from '@/api/scan';
 import { useTranslation, t as tFn } from '@/lib/i18n';
 
 export default function CameraScreen() {
@@ -23,12 +27,35 @@ export default function CameraScreen() {
     // 탭에서 벗어나면 카메라 unmount (배터리/프라이버시), 다시 들어오면 mount.
     const [isActive, setIsActive] = useState(true);
 
+    // AI 분석 상태 + 결과 시트
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [analysis, setAnalysis] = useState<FoodAnalysisResult | null>(null);
+    const scanResultRef = useRef<BottomSheetModal>(null);
+
     useFocusEffect(
         useCallback(() => {
             setIsActive(true);
             return () => setIsActive(false);
         }, [])
     );
+
+    // 촬영/갤러리 공통 분석 흐름: URI → 업로드 → 결과 시트.
+    // ⚠️ 훅(useCallback)이므로 반드시 early return보다 위에 선언 (Rules of Hooks).
+    const runAnalysis = useCallback(async (imageUri: string) => {
+        try {
+            setIsAnalyzing(true);
+            const response = await analyzeFoodImage(imageUri);
+            setAnalysis(response.data);
+            scanResultRef.current?.present();
+        } catch (error: any) {
+            Alert.alert(
+                tFn('camera.analyzeFailed'),
+                error?.message ?? tFn('common.tryAgain')
+            );
+        } finally {
+            setIsAnalyzing(false);
+        }
+    }, []);
 
     // ─── 권한 미결정 ───
     if (!permission) {
@@ -86,20 +113,36 @@ export default function CameraScreen() {
 
     // ─── 정상 카메라 미리보기 ───
     const handleCapture = async () => {
-        if (!cameraRef.current) return;
+        if (!cameraRef.current || isAnalyzing) return;
         try {
-            // 일단 촬영만 — AI 서버 연동 전까지는 안내 알림만 표시.
-            await cameraRef.current.takePictureAsync({
+            const photo = await cameraRef.current.takePictureAsync({
                 quality: 0.7,
                 skipProcessing: Platform.OS === 'android',
             });
-            Alert.alert(t('camera.title'), t('camera.comingSoon'));
+            if (!photo?.uri) throw new Error(tFn('camera.analyzeFailed'));
+            await runAnalysis(photo.uri);
         } catch (error: any) {
-            Alert.alert(
-                t('camera.title'),
-                error?.message ?? tFn('common.tryAgain')
-            );
+            Alert.alert(tFn('camera.analyzeFailed'), error?.message ?? tFn('common.tryAgain'));
         }
+    };
+
+    // 갤러리에서 기존 사진 선택 → 분석. (시뮬레이터에서도 동작!)
+    const handlePickFromGallery = async () => {
+        if (isAnalyzing) return;
+        const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permission.granted) {
+            Alert.alert(t('camera.title'), tFn('camera.galleryPermission'));
+            return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            quality: 0.7,
+        });
+
+        if (result.canceled) return;
+        const uri = result.assets?.[0]?.uri;
+        if (uri) await runAnalysis(uri);
     };
 
     const toggleFacing = () =>
@@ -140,22 +183,35 @@ export default function CameraScreen() {
                 className="absolute bottom-0 left-0 right-0"
             >
                 <View className="flex-row items-center justify-between px-10 pb-6 pt-4">
-                    {/* placeholder (좌측) — 추후 갤러리 버튼 자리 */}
-                    <View className="w-12 h-12" />
+                    {/* 갤러리에서 선택 (좌측) */}
+                    <TouchableOpacity
+                        onPress={handlePickFromGallery}
+                        disabled={isAnalyzing}
+                        accessibilityLabel={t('camera.pickFromGallery')}
+                        className="w-12 h-12 rounded-full bg-black/40 items-center justify-center"
+                    >
+                        <Ionicons name="images-outline" size={24} color="white" />
+                    </TouchableOpacity>
 
-                    {/* 촬영 버튼 */}
+                    {/* 촬영 버튼 (분석 중엔 스피너) */}
                     <TouchableOpacity
                         onPress={handleCapture}
+                        disabled={isAnalyzing}
                         activeOpacity={0.7}
                         accessibilityLabel={t('camera.capture')}
                         className="w-20 h-20 rounded-full border-4 border-white items-center justify-center"
                     >
-                        <View className="w-16 h-16 rounded-full bg-white" />
+                        {isAnalyzing ? (
+                            <ActivityIndicator size="large" color="white" />
+                        ) : (
+                            <View className="w-16 h-16 rounded-full bg-white" />
+                        )}
                     </TouchableOpacity>
 
                     {/* 전후면 전환 */}
                     <TouchableOpacity
                         onPress={toggleFacing}
+                        disabled={isAnalyzing}
                         accessibilityLabel={t('camera.flipCamera')}
                         className="w-12 h-12 rounded-full bg-black/40 items-center justify-center"
                     >
@@ -163,6 +219,19 @@ export default function CameraScreen() {
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>
+
+            {/* 분석 중 전체 오버레이 */}
+            {isAnalyzing ? (
+                <View className="absolute inset-0 bg-black/50 items-center justify-center">
+                    <ActivityIndicator size="large" color="white" />
+                    <Text className="text-white text-base font-semibold mt-3">
+                        {t('camera.analyzing')}
+                    </Text>
+                </View>
+            ) : null}
+
+            {/* 분석 결과 바텀시트 */}
+            <ScanResultSheet ref={scanResultRef} result={analysis} />
         </View>
     );
 }

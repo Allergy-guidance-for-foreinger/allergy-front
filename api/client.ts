@@ -35,13 +35,21 @@ export async function authedFetch(
         throw new Error('Missing access token. Please log in again.');
     }
 
+    // FormData(이미지 업로드 등)는 fetch가 boundary 포함 Content-Type을 자동 생성하므로,
+    // 'application/json'을 강제하면 안 됨. body가 FormData면 Content-Type을 직접 지정하지 않는다.
+    const isFormData = typeof FormData !== 'undefined' && init?.body instanceof FormData;
+
+    const headers: Record<string, string> = {
+        Authorization: `Bearer ${accessToken}`,
+        ...((init?.headers as Record<string, string>) ?? {}),
+    };
+    if (!isFormData && !headers['Content-Type']) {
+        headers['Content-Type'] = 'application/json';
+    }
+
     const response = await fetch(`${API_URL}${path}`, {
         ...init,
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-            ...(init?.headers ?? {}),
-        },
+        headers,
     });
 
     if (response.status === 401 && !isRetry) {
