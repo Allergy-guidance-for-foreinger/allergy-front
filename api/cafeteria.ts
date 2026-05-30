@@ -104,8 +104,7 @@ export interface MenuLikeResponse {
     likedByMe: boolean;
 }
 
-// 메뉴 좋아요 토글. 서버가 (cafeteriaId, menuId)로 like 상태를 관리하고,
-// 응답에 갱신된 likeCount / likedByMe를 돌려줌.
+// 메뉴 좋아요 토글
 export async function toggleMenuLike(mealMenuId: number) {
     return requestJson<MenuLikeResponse>(
         `/api/v1/meal-menus/${mealMenuId}/like`,
