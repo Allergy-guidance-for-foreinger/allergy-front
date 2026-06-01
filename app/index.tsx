@@ -32,6 +32,7 @@ export default function LoginScreen() {
             // 구글 토큰 발급 후
             if (idToken) {
                 const deviceId = await DeviceInfo.getUniqueId();
+                Alert.alert("구글 로그인 성공!", "이제 서버로 토큰을 보냅니다.");
                 console.log('deviceId acquired: ', deviceId);
                 console.log('idToken: ', idToken);
                 console.log('Google ID token acquired, sending to server');
