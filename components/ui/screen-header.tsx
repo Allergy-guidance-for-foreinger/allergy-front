@@ -1,10 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import type { ReactNode } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from '@/lib/i18n';
 
 type ScreenHeaderProps = {
-    title: string;
+    title: ReactNode;
     onBackPress?: () => void;
 };
 
@@ -20,9 +21,13 @@ export default function ScreenHeader({ title, onBackPress }: ScreenHeaderProps) 
             >
                 <Ionicons name="chevron-back" size={30} color="#111827" />
             </TouchableOpacity>
-            <Text className="text-xl font-semibold text-gray-900 flex-1" numberOfLines={1}>
-                {title}
-            </Text>
+            <View className="flex-1">{typeof title === 'string' ? (
+                <Text className="text-xl font-semibold text-gray-900" numberOfLines={1}>
+                    {title}
+                </Text>
+            ) : (
+                title
+            )}</View>
         </View>
     );
 }

@@ -3,7 +3,6 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ActionButton } from '@/components/ui/action-button';
-import { getWeeklyMeals } from '@/api/cafeteria';
 import { useTranslation } from '@/lib/i18n';
 import { useSignOut } from '@/hooks/useSignOut';
 
@@ -17,22 +16,6 @@ export default function SettingsScreen() {
         { id: 'allergy', title: t('settings.allergy'), icon: 'shield-checkmark-outline', path: '/settings/allergy' },
         { id: 'language', title: t('settings.language'), icon: 'language-outline', path: '/settings/language' },
     ];
-
-    const handleLoadWeekly = async () => {
-        try {
-            const today = new Date();
-            const yyyy = today.getFullYear();
-            const mm = String(today.getMonth() + 1).padStart(2, '0');
-            const dd = String(today.getDate()).padStart(2, '0');
-            const dateStr = `${yyyy}-${mm}-${dd}`;
-            console.log('[weekly-meals] 요청: cafeteriaId=1, weekStartDate=', dateStr);
-
-            const response = await getWeeklyMeals(4, dateStr);
-            console.log('[weekly-meals] response =', JSON.stringify(response, null, 2));
-        } catch (error) {
-            console.warn('[weekly-meals] 호출 실패:', error);
-        }
-    };
 
     return (
         <SafeAreaView className="flex-1 bg-white">
@@ -55,10 +38,7 @@ export default function SettingsScreen() {
                     ))}
                 </ScrollView>
             </View>
-            <View className="px-5 pb-5 items-center gap-3">
-                <ActionButton onPress={handleLoadWeekly}>
-                    Weekly
-                </ActionButton>
+            <View className="px-5 pb-5 items-center">
                 <ActionButton onPress={handleLogout}>
                     {t('settings.logOut')}
                 </ActionButton>

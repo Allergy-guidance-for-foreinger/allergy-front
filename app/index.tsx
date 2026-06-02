@@ -12,7 +12,6 @@ export default function LoginScreen() {
     const t = useTranslation();
     const setLoggedIn = useAppStore((state) => state.setLoggedIn);
     const setHasCompletedOnboarding = useAppStore((state) => state.setHasCompletedOnboarding);
-    const resetProfile = useAppStore((state) => state.resetProfile);
     const hydrateFromServerSettings = useAppStore((state) => state.hydrateFromServerSettings);
     useEffect(() => {
         GoogleSignin.configure({
@@ -32,7 +31,6 @@ export default function LoginScreen() {
             // 구글 토큰 발급 후
             if (idToken) {
                 const deviceId = await DeviceInfo.getUniqueId();
-                Alert.alert("구글 로그인 성공!", "이제 서버로 토큰을 보냅니다.");
                 console.log('deviceId acquired: ', deviceId);
                 console.log('idToken: ', idToken);
                 console.log('Google ID token acquired, sending to server');
@@ -43,10 +41,6 @@ export default function LoginScreen() {
                 // 기존 유저
                 if (authData.onboardingCompleted) {
                     await hydrateFromServerSettings();
-                }
-                // 신규 유저
-                else {
-                    resetProfile();
                 }
             }
         } catch (error: any) {
@@ -105,25 +99,6 @@ export default function LoginScreen() {
                     className="w-full h-[50px] bg-white border border-gray-300 rounded-2xl flex-row justify-center items-center active:bg-gray-400"
                 >
                     <Text className="text-gray-900 font-semibold text-base">{t('login.continueWithGoogle')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    onPress={()=>setLoggedIn(true)}
-                    className="w-full h-[50px] bg-white border border-gray-300 rounded-2xl flex-row justify-center items-center active:bg-gray-400"
-                >
-                    <Text className="text-gray-900 font-semibold text-base">
-                        {t('login.devEnter')}
-                    </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    onPress={() => {
-                        setLoggedIn(true);
-                        setHasCompletedOnboarding(true);
-                    }}
-                    className="w-full h-[50px] bg-white border border-gray-300 rounded-2xl flex-row justify-center items-center active:bg-gray-400"
-                >
-                    <Text className="text-gray-900 font-semibold text-base">
-                        {t('login.devSkipOnboarding')}
-                    </Text>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>

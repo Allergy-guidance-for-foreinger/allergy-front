@@ -107,6 +107,8 @@ const en: TranslationDict = {
     'risk.high': 'High',
     'risk.medium': 'Medium',
     'risk.low': 'Low',
+    'risk.safe': 'Safe',
+    'risk.unknown': 'Unknown',
 
     // 번역 탭
     'translate.title': 'Translate',
@@ -271,6 +273,8 @@ const ko: TranslationDict = {
     'risk.high': '높음',
     'risk.medium': '중간',
     'risk.low': '낮음',
+    'risk.safe': '안전',
+    'risk.unknown': '미확인',
 
     'translate.title': '번역',
     'translate.description':

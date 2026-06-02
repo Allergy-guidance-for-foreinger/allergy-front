@@ -8,8 +8,6 @@ import PagerView, {
     type PagerViewOnPageSelectedEventData,
 } from 'react-native-pager-view';
 import '../global.css';
-import { useAppStore } from '@/store/useAppStore';
-import { normalizeAllergyValue } from '@/constants/allergyList';
 import { RiskIndicator } from '@/components/ui/risk-indicator';
 import { SpicyLevel } from '@/components/ui/spicy-level';
 import {
@@ -19,6 +17,7 @@ import {
     type ServerMealSchedule,
 } from '@/api/cafeteria';
 import { useTranslation } from '@/lib/i18n';
+import { useAppStore } from '@/store/useAppStore';
 
 // 메인 화면에 표시할 식당 순서 (왼쪽부터).
 // 서버 명세 갱신: cafeteriaId 1=일품, 2=정찬, 3=분식
@@ -69,11 +68,7 @@ function getMondayOfWeek(date: Date): string {
 
 export default function HomeScreen() {
     const t = useTranslation();
-    const allergies = useAppStore((state) => state.allergies);
-    const normalizedAllergies = useMemo(
-        () => Array.from(new Set(allergies.map((allergy) => normalizeAllergyValue(allergy)))),
-        [allergies]
-    );
+    const language = useAppStore((state) => state.language);
 
     const dateScrollRef = useRef<ScrollView>(null);
 
@@ -236,11 +231,6 @@ export default function HomeScreen() {
         <SafeAreaView className="flex-1 bg-white pt-5">
             <View className="px-5 items-center mb-6">
                 <Text className="text-3xl font-bold text-gray-800 mb-3">{t('main.title')}</Text>
-                <View className="bg-red-100 px-4 py-2 rounded-full">
-                    <Text className="text-red-600 font-semibold">
-                        {t('main.currentFilter')}: {normalizedAllergies.join(', ') || t('common.none')}
-                    </Text>
-                </View>
             </View>
 
             <View className="mb-6">
@@ -390,18 +380,32 @@ export default function HomeScreen() {
                                                         })
                                                     }
                                                 >
-                                                    <View className="flex-row items-center justify-between">
+                                                    <View className="flex-row items-start gap-3">
                                                         <Text
-                                                            className="text-base text-gray-800 font-semibold flex-1 pr-3"
-                                                            numberOfLines={2}
+                                                            className="text-base text-gray-800 font-semibold flex-1"
+                                                            numberOfLines={language === 'en' ? 3 : 2}
+                                                            style={{
+                                                                fontSize: language === 'en' ? 15 : 16,
+                                                                lineHeight: language === 'en' ? 20 : 22,
+                                                            }}
                                                         >
                                                             {menu.menuName}
-                                                            {menu.spicyLevel > 0 ? ' ' : ''}
-                                                            {menu.spicyLevel > 0 ? (
-                                                                <SpicyLevel level={menu.spicyLevel} />
-                                                            ) : null}
                                                         </Text>
-                                                        <RiskIndicator level={riskLevel} />
+
+                                                        <View className="min-w-[44px] items-center pt-0.5">
+                                                            {menu.spicyLevel > 0 ? (
+                                                                <SpicyLevel
+                                                                    level={menu.spicyLevel}
+                                                                    className="text-base"
+                                                                />
+                                                            ) : (
+                                                                <View className="h-5" />
+                                                            )}
+                                                        </View>
+
+                                                        <View className="pt-0.5">
+                                                            <RiskIndicator level={riskLevel} />
+                                                        </View>
                                                     </View>
                                                 </TouchableOpacity>
                                             );

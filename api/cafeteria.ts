@@ -122,26 +122,50 @@ export interface ServerMenuReview {
 }
 
 export interface ServerMenuIngredient {
-    code: string; // e.g., "OYSTER", "SOYBEAN" (ALLERGY_LIST의 apiCode와 동일)
+    code: string; // e.g., "AI_B72D4A4794833847", "EGG"
+    name: string;
     source: string; // "AI" | (향후 다른 값)
 }
 
 export interface ServerMatchedAllergy {
-    allergyCode: string; // 사용자가 가진 알러지 코드 (e.g., "PORK")
-    ingredientCode: string | null; // 매칭된 식재료 코드 (없을 수 있음)
+    code: string; // 매칭된 알러지 코드 (e.g., "TOMATO")
+    name: string; // 표시용 이름 (e.g., "토마토")
+    riskLevel: string; // DANGER | HIGH | MEDIUM | LOW | SAFE
+    confidence: number;
+}
+
+export interface ServerMenuAllergy {
+    code: string;
+    name: string;
+    source: string;
+}
+
+export interface ServerMatchedReligiousRestriction {
+    religiousRestrictionCode: string;
+    religiousRestrictionName: string;
+    riskLevel: string;
+}
+
+export interface ServerMatchedReligiousIngredient {
+    ingredientCode: string;
+    ingredientName: string;
+    confidence: number;
+    matchedReligiousRestrictions: ServerMatchedReligiousRestriction[];
 }
 
 export interface ServerMenuDetail {
     mealMenuId: number;
     menuName: string;
-    description: string | null;
+    description: string;
     cornerName: string;
     displayOrder: number;
     spicyLevel: number;
     aiAnalyzed: boolean;
-    risk: ServerMenuRisk; // { riskLevel: "DANGER"|"HIGH"|"MEDIUM"|"LOW"|"SAFE"|"UNKNOWN" }
+    risk?: ServerMenuRisk; // { riskLevel: "DANGER"|"HIGH"|"MEDIUM"|"LOW"|"SAFE"|"UNKNOWN" }
+    allergies: ServerMenuAllergy[];
     ingredients: ServerMenuIngredient[];
     matchedAllergies: ServerMatchedAllergy[];
+    matchedReligiousIngredients: ServerMatchedReligiousIngredient[];
     like: ServerMenuLike;
     review: ServerMenuReview;
 }

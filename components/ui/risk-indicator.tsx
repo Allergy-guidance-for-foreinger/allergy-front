@@ -1,5 +1,4 @@
 import { Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import type { RiskLevel } from '@/api/cafeteria';
 import { useTranslation } from '@/lib/i18n';
 
@@ -10,10 +9,9 @@ interface RiskIndicatorProps {
 export function RiskIndicator({ level }: RiskIndicatorProps) {
     const t = useTranslation();
     if (level === 'danger') {
-        // 가장 위험한 단계 — 깊은 빨강 + 경고 이모지
         return (
             <View className="rounded-full bg-red-700 px-2.5 py-1">
-                <Text className="text-xs font-bold text-white">⚠ {t('risk.danger')}</Text>
+                <Text className="text-xs font-bold text-white">{t('risk.danger')}</Text>
             </View>
         );
     }
@@ -39,9 +37,15 @@ export function RiskIndicator({ level }: RiskIndicatorProps) {
         );
     }
     if (level === 'safe') {
-        // 분석되어 안전 확인된 상태 → 초록 체크 아이콘
-        return <Ionicons name="checkmark-circle" size={22} color="#16a34a" />;
+        return (
+            <View className="rounded-full bg-green-500 px-2.5 py-1">
+                <Text className="text-xs font-bold text-white">{t('risk.safe')}</Text>
+            </View>
+        );
     }
-    // UNKNOWN 또는 정보 없음 → 회색 ? 아이콘
-    return <Ionicons name="help-circle" size={20} color="#9CA3AF" />;
+    return (
+        <View className="rounded-full bg-gray-400 px-2.5 py-1">
+            <Text className="text-xs font-bold text-white">{t('risk.unknown')}</Text>
+        </View>
+    );
 }

@@ -9,14 +9,12 @@ import {
     getLocalizedAllergyLabel,
     getLocalizedGroupSubtitle,
     getLocalizedGroupTitle,
-    getLocalizedLabel,
     normalizeAllergies,
     sortAllergyItemsByLocale,
     toAllergyCodes,
 } from '@/constants/allergyList';
 import {
     SELECTABLE_RELIGIOUS_OPTIONS,
-    getReligiousOptionByCode,
     normalizeReligiousCodes,
     toServerReligiousCodes,
 } from '@/data/religiousOptions';
@@ -230,55 +228,8 @@ export default function AllergySettings({
                 <View className="mb-8">
                     <Text className="text-3xl font-bold text-gray-900 mb-2">{resolvedTitle}</Text>
                     <Text className="text-gray-500 text-lg">{resolvedSubtitle}</Text>
-                    <View className="mt-4 self-start rounded-full bg-gray-100 px-4 py-2">
-                        <Text className="text-sm font-semibold text-gray-700">
-                            {t('allergy.selected', { count: normalizedAllergies.length })}
-                        </Text>
-                    </View>
                 </View>
             ) : null}
-
-            <View className="relative mb-6 rounded-[24px] border border-gray-200 bg-white px-4 py-5 pt-6">
-                <View className="absolute -top-3 left-4 rounded-full bg-white px-2">
-                    <Text className="text-sm font-semibold text-gray-500">{t('allergy.selectedRestrictions')}</Text>
-                </View>
-                <View className="mb-4">
-                    <Text className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
-                        {t('allergy.religious')}
-                    </Text>
-                    {normalizedReligiousCodes.length === 0 ? (
-                        <Text className="text-sm text-gray-400">{t('allergy.noReligiousSelected')}</Text>
-                    ) : (
-                        <View className="flex-row flex-wrap gap-2">
-                            {normalizedReligiousCodes.map((code) => (
-                                <View key={code} className="rounded-full bg-blue-500 px-3 py-2">
-                                    <Text className="text-xs font-semibold text-white">
-                                        {getReligiousOptionByCode(code).label}
-                                    </Text>
-                                </View>
-                            ))}
-                        </View>
-                    )}
-                </View>
-                <View>
-                    <Text className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
-                        {t('allergy.allergies')}
-                    </Text>
-                    {normalizedAllergies.length > 0 ? (
-                        <View className="flex-row flex-wrap gap-2">
-                            {normalizedAllergies.map((allergy) => (
-                                <View key={allergy} className="rounded-full bg-blue-500 px-3 py-2">
-                                    <Text className="text-xs font-semibold text-white">
-                                        {getLocalizedLabel(allergy, language)}
-                                    </Text>
-                                </View>
-                            ))}
-                        </View>
-                    ) : (
-                        <Text className="text-sm text-gray-400">{t('allergy.noAllergiesSelected')}</Text>
-                    )}
-                </View>
-            </View>
 
             <View
                 className={`mb-6 rounded-[28px] border px-4 py-4 ${
