@@ -6,6 +6,8 @@ import { normalizeReligiousCodes, singleToReligiousCodes } from '@/data/religiou
 import { normalizeSchoolId } from '@/data/schoolList';
 import { normalizeCountryCode } from '@/data/countryList';
 import { loadCurrentUserSettings } from '@/api/settings';
+import type { FoodAnalysisResult } from '@/api/scan';
+import type { SuccessResponse } from '@/api/client';
 
 type AppState = {
     isLoggedIn: boolean;
@@ -16,6 +18,8 @@ type AppState = {
     religiousCodes: string[];
     allergies: string[];
     hasCompletedOnboarding: boolean;
+    currentScanImageUri: string | null;
+    currentScanResponse: SuccessResponse<FoodAnalysisResult> | null;
     _hasHydrated: boolean;
 }
 type AppAction = {
@@ -25,7 +29,11 @@ type AppAction = {
     setSchoolId: (schoolId: number | null) => void;
     setReligiousCodes: (religiousCodes: string[]) => void;
     setAllergies: (allergies: string[]) => void;
+    setCurrentScanResult: (
+        payload: { imageUri: string; response: SuccessResponse<FoodAnalysisResult> } | null
+    ) => void;
     resetProfile: () => void;
+    clearCurrentScanResult: () => void;
     completeOnboarding: () => void;
     setHasCompletedOnboarding: (status: boolean) => void;
     setHasHydrated: (status: boolean) => void;
@@ -44,6 +52,8 @@ export const useAppStore = create<AppStore>()(
             religiousCodes: [],
             allergies: [],
             hasCompletedOnboarding: false,
+            currentScanImageUri: null,
+            currentScanResponse: null,
             _hasHydrated: false,
             setLoggedIn: (status) => set({ isLoggedIn: status }),
             setLanguage: (lang) => set({ language: lang }),
@@ -51,6 +61,11 @@ export const useAppStore = create<AppStore>()(
             setSchoolId: (schoolId) => set({ schoolId }),
             setReligiousCodes: (religiousCodes) => set({ religiousCodes: normalizeReligiousCodes(religiousCodes) }),
             setAllergies: (allergies) => set({ allergies: normalizeAllergies(allergies) }),
+            setCurrentScanResult: (payload) =>
+                set({
+                    currentScanImageUri: payload?.imageUri ?? null,
+                    currentScanResponse: payload?.response ?? null,
+                }),
             resetProfile: () => set({
                 language: 'en',
                 country: '',
@@ -58,7 +73,14 @@ export const useAppStore = create<AppStore>()(
                 religiousCodes: [],
                 allergies: [],
                 hasCompletedOnboarding: false,
+                currentScanImageUri: null,
+                currentScanResponse: null,
             }),
+            clearCurrentScanResult: () =>
+                set({
+                    currentScanImageUri: null,
+                    currentScanResponse: null,
+                }),
             completeOnboarding: () => set({ hasCompletedOnboarding: true }),
             setHasCompletedOnboarding: (status) => set({ hasCompletedOnboarding: status }),
             setHasHydrated: (status) => set({ _hasHydrated: status }),

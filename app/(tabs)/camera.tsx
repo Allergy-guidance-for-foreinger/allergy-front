@@ -12,10 +12,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions, type CameraType } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from 'expo-router';
-import type { BottomSheetModal } from '@gorhom/bottom-sheet';
-import ScanResultSheet from '@/components/scan-result-sheet';
-import { analyzeFoodImage, type FoodAnalysisResult } from '@/api/scan';
+import { router, useFocusEffect } from 'expo-router';
+import { useAppStore } from '@/store/useAppStore';
+import {
+    analyzeFoodImage,
+    normalizeFoodAnalysisResult,
+} from '@/api/scan';
 import { useTranslation, t as tFn } from '@/lib/i18n';
 
 export default function CameraScreen() {
@@ -27,10 +29,10 @@ export default function CameraScreen() {
     // 탭에서 벗어나면 카메라 unmount (배터리/프라이버시), 다시 들어오면 mount.
     const [isActive, setIsActive] = useState(true);
 
-    // AI 분석 상태 + 결과 시트
+    const setCurrentScanResult = useAppStore((state) => state.setCurrentScanResult);
+
+    // AI 분석 상태
     const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [analysis, setAnalysis] = useState<FoodAnalysisResult | null>(null);
-    const scanResultRef = useRef<BottomSheetModal>(null);
 
     useFocusEffect(
         useCallback(() => {
@@ -45,8 +47,12 @@ export default function CameraScreen() {
         try {
             setIsAnalyzing(true);
             const response = await analyzeFoodImage(imageUri);
-            setAnalysis(response.data);
-            scanResultRef.current?.present();
+            const normalizedResponse = {
+                ...response,
+                data: normalizeFoodAnalysisResult(response.data),
+            };
+            setCurrentScanResult({ imageUri, response: normalizedResponse });
+            router.push('/scan-result');
         } catch (error: any) {
             Alert.alert(
                 tFn('camera.analyzeFailed'),
@@ -229,9 +235,6 @@ export default function CameraScreen() {
                     </Text>
                 </View>
             ) : null}
-
-            {/* 분석 결과 바텀시트 */}
-            <ScanResultSheet ref={scanResultRef} result={analysis} />
         </View>
     );
 }
