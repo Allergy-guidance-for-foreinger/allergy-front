@@ -42,7 +42,7 @@ export interface ReviewLikeResponse {
     likedByMe: boolean;
 }
 
-// 리뷰 목록 (페이지네이션)
+// 리뷰 목록 (페이지네이션 공부)
 export async function getReviews(mealMenuId: number, page: number, size = 20) {
     const params = new URLSearchParams({
         page: String(page),

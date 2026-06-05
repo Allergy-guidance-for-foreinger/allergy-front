@@ -65,7 +65,7 @@ export const loginWithGoogleToken = async (idToken: string, deviceId: string) =>
     return result.data;
 };
 
-// 동시에 여러 401 요청이 들어와도 refresh는 한 번만 수행되도록 single-flight
+//  single-flight 구조
 let pendingRefresh: Promise<string | null> | null = null;
 
 export function refreshAccessToken(): Promise<string | null> {
@@ -110,6 +110,7 @@ export function refreshAccessToken(): Promise<string | null> {
 // 자동 로그인 검사: SecureStore에 accessToken이 있으면  로그인 상태로 간주
 // 실제 토큰 유효성은 후속 API 호출(authedFetch)에서 lazy하게 검증되며
 // 401 + refresh 실패 시 client.ts의 onAuthExpired 콜백이 강제 로그아웃을 트리거한다
+
 export const verifyAndRestoreSession = async (): Promise<SessionRestoreResult> => {
     try {
         const accessToken = await SecureStore.getItemAsync('accessToken');
