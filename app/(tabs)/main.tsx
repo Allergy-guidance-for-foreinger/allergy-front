@@ -69,6 +69,7 @@ function getMondayOfWeek(date: Date): string {
 export default function HomeScreen() {
     const t = useTranslation();
     const language = useAppStore((state) => state.language);
+    const schoolId = useAppStore((state) => state.schoolId);
 
     const dateScrollRef = useRef<ScrollView>(null);
 
@@ -79,23 +80,31 @@ export default function HomeScreen() {
     const [selectedDate, setSelectedDate] = useState(todayString);
 
     // 식당 목록
-    const { data: cafeteriasResponse } = useQuery({
-        queryKey: ['cafeterias'],
+    const { data: cafeteriasResponse, isPending: isCafeteriasPending } = useQuery({
+        queryKey: ['cafeterias', schoolId],
         queryFn: getCafeterias,
+        enabled: schoolId !== null,
         staleTime: 1000 * 60 * 60,
     });
 
     const displayedCafeterias: DisplayedCafeteria[] = useMemo(() => {
         const serverList = cafeteriasResponse?.data?.cafeterias;
+        if (schoolId === null || isCafeteriasPending) {
+            return [];
+        }
         if (!serverList || serverList.length === 0) {
             return FALLBACK_CAFETERIAS;
         }
         return DISPLAY_ORDER.map((id) => serverList.find((c) => c.cafeteriaId === id))
             .filter((c): c is NonNullable<typeof c> => Boolean(c))
             .map((c) => ({ cafeteriaId: c.cafeteriaId, name: c.name }));
-    }, [cafeteriasResponse]);
+    }, [cafeteriasResponse, isCafeteriasPending, schoolId]);
 
     const [selectedCafeteriaId, setSelectedCafeteriaId] = useState<number | null>(null);
+
+    useEffect(() => {
+        setSelectedCafeteriaId(null);
+    }, [schoolId]);
 
     useEffect(() => {
         if (selectedCafeteriaId !== null) return;
@@ -110,9 +119,9 @@ export default function HomeScreen() {
 
     // 주간 식단
     const { data: weeklyMealsResponse, isFetching: isWeeklyFetching } = useQuery({
-        queryKey: ['weeklyMeals', selectedCafeteriaId, weekStartDate],
+        queryKey: ['weeklyMeals', schoolId, selectedCafeteriaId, weekStartDate],
         queryFn: () => getWeeklyMeals(selectedCafeteriaId as number, weekStartDate),
-        enabled: selectedCafeteriaId !== null,
+        enabled: schoolId !== null && selectedCafeteriaId !== null,
         staleTime: 1000 * 60 * 10,
     });
 
