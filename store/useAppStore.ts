@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { profileStorage } from '@/lib/profile-storage';
 import { normalizeAllergies } from '@/constants/allergyList';
 import { normalizeReligiousCodes, singleToReligiousCodes } from '@/data/religiousOptions';
 import { normalizeSchoolId } from '@/data/schoolList';
@@ -101,7 +101,8 @@ export const useAppStore = create<AppStore>()(
         {
             name: 'app-storage-b', // 기기에 저장될 파일명
             version: 6, // v5 → v6: religiousCode(단수) → religiousCodes(배열)
-            storage: createJSONStorage(() => AsyncStorage), // AsyncStorage를 통해 영구 저장
+            storage: createJSONStorage(() => profileStorage),
+            skipHydration: true, // Rehydrate after mount; static web rendering has no window.
             partialize: (state) => ({
                 language: state.language,
                 country: state.country,
@@ -130,8 +131,10 @@ export const useAppStore = create<AppStore>()(
                     hasCompletedOnboarding: state?.hasCompletedOnboarding ?? false,
                 };
             },
-            onRehydrateStorage: () => (state) => {
-                state?.setHasHydrated(true);
+            onRehydrateStorage: () => (_state, error) => {
+                if (error) console.warn('Could not restore saved preferences:', error);
+                // Also release the startup gate after invalid JSON or a storage error.
+                useAppStore.getState().setHasHydrated(true);
             },
         }
     )

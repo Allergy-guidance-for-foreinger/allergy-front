@@ -1,4 +1,4 @@
-import * as SecureStore from 'expo-secure-store';
+import { tokenStorage } from '@/lib/token-storage';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? '';
 
@@ -57,9 +57,11 @@ export const loginWithGoogleToken = async (idToken: string, deviceId: string) =>
         throw new Error('서버에서 토큰을 받지 못했습니다. 다시 시도해 주세요');
     }
 
-    await SecureStore.setItemAsync('accessToken', accessToken);
+    await tokenStorage.setItem('accessToken', accessToken);
     if (refreshToken) {
-        await SecureStore.setItemAsync('refreshToken', refreshToken);
+        await tokenStorage.setItem('refreshToken', refreshToken);
+    } else {
+        await tokenStorage.removeItem('refreshToken');
     }
     console.log('JWT 발급 완료');
     return result.data;
@@ -73,7 +75,7 @@ export function refreshAccessToken(): Promise<string | null> {
 
     pendingRefresh = (async (): Promise<string | null> => {
         try {
-            const refreshToken = await SecureStore.getItemAsync('refreshToken');
+            const refreshToken = await tokenStorage.getItem('refreshToken');
             if (!refreshToken) return null;
 
             const response = await fetch(`${API_URL}/auth/refresh`, {
@@ -90,9 +92,9 @@ export function refreshAccessToken(): Promise<string | null> {
 
             if (!newAccessToken) return null;
 
-            await SecureStore.setItemAsync('accessToken', newAccessToken);
+            await tokenStorage.setItem('accessToken', newAccessToken);
             if (newRefreshToken) {
-                await SecureStore.setItemAsync('refreshToken', newRefreshToken);
+                await tokenStorage.setItem('refreshToken', newRefreshToken);
             }
             console.log('토큰 갱신 성공');
             return newAccessToken;
@@ -107,13 +109,13 @@ export function refreshAccessToken(): Promise<string | null> {
     return pendingRefresh;
 }
 
-// 자동 로그인 검사: SecureStore에 accessToken이 있으면  로그인 상태로 간주
+// 자동 로그인 검사: 플랫폼 저장소에 accessToken이 있으면  로그인 상태로 간주
 // 실제 토큰 유효성은 후속 API 호출(authedFetch)에서 lazy하게 검증되며
 // 401 + refresh 실패 시 client.ts의 onAuthExpired 콜백이 강제 로그아웃을 트리거한다
 
 export const verifyAndRestoreSession = async (): Promise<SessionRestoreResult> => {
     try {
-        const accessToken = await SecureStore.getItemAsync('accessToken');
+        const accessToken = await tokenStorage.getItem('accessToken');
         if (!accessToken) return { isValid: false };
 
         return { isValid: true };
@@ -126,7 +128,7 @@ export const verifyAndRestoreSession = async (): Promise<SessionRestoreResult> =
 // 서버에 로그아웃 통지 (refresh token 무효화). 실패해도 best-effort라 throw 안 함.
 export const logoutFromServer = async (): Promise<void> => {
     try {
-        const refreshToken = await SecureStore.getItemAsync('refreshToken');
+        const refreshToken = await tokenStorage.getItem('refreshToken');
         if (!refreshToken) return;
 
         await fetch(`${API_URL}/auth/logout`, {

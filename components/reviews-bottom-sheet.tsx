@@ -1,5 +1,6 @@
+import { Alert } from '@/lib/alert';
 import { memo, useCallback, useMemo, useState, type Ref } from 'react';
-import { Alert, ActivityIndicator, Platform, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Platform, Text, TouchableOpacity, View } from 'react-native';
 import {
     BottomSheetModal,
     BottomSheetBackdrop,

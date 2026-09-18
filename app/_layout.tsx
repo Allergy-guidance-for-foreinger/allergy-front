@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import './global.css';
+import { ActivityIndicator, View } from 'react-native';
 import { Stack, useRouter, useSegments, useRootNavigationState } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as SplashScreen from 'expo-splash-screen';
-import * as SecureStore from 'expo-secure-store';
+import { tokenStorage } from '@/lib/token-storage';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { useAppStore } from '../store/useAppStore';
@@ -25,13 +27,19 @@ export default function RootLayout() {
 
     const [isAppReady, setIsAppReady] = useState(false);
 
+    useEffect(() => {
+        void useAppStore.persist.rehydrate();
+    }, []);
+
     // 인증 만료 시 강제 로그아웃 콜백 등록
     useEffect(() => {
         setOnAuthExpired(() => {
             void (async () => {
                 try {
-                    await SecureStore.deleteItemAsync('accessToken');
-                    await SecureStore.deleteItemAsync('refreshToken');
+                    await Promise.allSettled([
+                tokenStorage.removeItem('accessToken'),
+                tokenStorage.removeItem('refreshToken'),
+            ]);
                 } finally {
                     resetProfile();
                     setLoggedIn(false);
@@ -105,6 +113,14 @@ export default function RootLayout() {
         // 라우팅 결정이 끝났으니 스플래시 화면 치우기
         SplashScreen.hideAsync();
     }, [hasCompletedOnboarding, hasHydrated, isAppReady, isLoggedIn, rootNavigationState?.key, router, segments]);
+
+    // Render the same startup UI on the server and on the first browser render.
+    // Mount route screens only after persistence/session restoration finishes.
+    if (!isAppReady || !hasHydrated) {
+        return <View style={{ flex: 1, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center' }}>
+            <ActivityIndicator accessibilityLabel="Loading app" size="large" />
+        </View>;
+    }
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>

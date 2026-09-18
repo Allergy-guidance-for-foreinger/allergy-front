@@ -1,7 +1,8 @@
+import { Alert } from '@/lib/alert';
 import { router } from 'expo-router';
 import { useAppStore } from '../../store/useAppStore';
 import AllergySettings from '../../components/settings/AllergySettings';
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ActionButton } from '../../components/ui/action-button';
 import { saveOnboardingProfile } from '@/api/onboarding';

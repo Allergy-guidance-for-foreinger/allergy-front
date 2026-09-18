@@ -1,6 +1,6 @@
+import { Alert } from '@/lib/alert';
 import { useEffect, useMemo, useState } from 'react';
 import {
-    Alert,
     FlatList,
     Modal,
     Text,

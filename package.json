@@ -9,7 +9,10 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "setup": "cp .env.example .env && echo '.env 파일이 생성되었습니다. 실제 값을 입력해주세요.'"
+    "setup": "cp .env.example .env && echo '.env 파일이 생성되었습니다. 실제 값을 입력해주세요.'",
+    "build:web": "expo export --platform web",
+    "test:web": "node tests/web-smoke.cjs",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

@@ -1,7 +1,8 @@
+import { Alert } from '@/lib/alert';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LanguageSettings from '../../components/settings/LanguageSettings';
-import { Alert, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { ActionButton } from '../../components/ui/action-button';
 import { useTranslation, t as tFn } from '@/lib/i18n';
 import { useSignOut } from '@/hooks/useSignOut';

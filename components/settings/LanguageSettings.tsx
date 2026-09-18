@@ -1,5 +1,6 @@
+import { Alert } from '@/lib/alert';
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Text, View, TouchableOpacity } from 'react-native';
+import { Text, View, TouchableOpacity } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/store/useAppStore';
 import { getLanguageSetting, updateLanguageSetting, getLanguageOptions } from '@/api/settings';
