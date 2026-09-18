@@ -1,0 +1,54 @@
+[
+  {
+    "name": "Google callback → API login → AsyncStorage token persistence",
+    "status": "PASS"
+  },
+  {
+    "name": "Menu pager selects dinner",
+    "status": "PASS"
+  },
+  {
+    "name": "Profile editing + reload restores AsyncStorage without server settings",
+    "status": "PASS"
+  },
+  {
+    "name": "Scan tab starts live video; flip releases previous camera",
+    "status": "PASS"
+  },
+  {
+    "name": "Capture sends multipart image bytes and opens result; stream stops",
+    "status": "PASS"
+  },
+  {
+    "name": "Back resumes camera; menu tab stops it; scan re-entry resumes",
+    "status": "PASS"
+  },
+  {
+    "name": "401 refresh persists rotated tokens; logout removes both; reload stays signed out",
+    "status": "PASS"
+  },
+  {
+    "name": "Corrupt persisted JSON does not stall startup",
+    "status": "PASS"
+  },
+  {
+    "name": "Blocked localStorage does not stall login",
+    "status": "PASS"
+  },
+  {
+    "name": "Legacy v5 preferences migrate to v6",
+    "status": "PASS"
+  },
+  {
+    "name": "NotAllowedError: visible error + disabled capture + gallery upload",
+    "status": "PASS"
+  },
+  {
+    "name": "NotFoundError: visible error + disabled capture + gallery upload",
+    "status": "PASS"
+  },
+  {
+    "name": "Permission resolving after tab exit does not leak a live camera",
+    "status": "PASS"
+  }
+]

@@ -1,4 +1,5 @@
 import { requestJson } from '@/api/client';
+import { Platform } from 'react-native';
 
 export type ScanItem = string | { code?: string; name?: string };
 
@@ -92,18 +93,23 @@ export function normalizeFoodAnalysisResult(result: FoodAnalysisResult): FoodAna
  * @param imageUri  expo-camera의 takePictureAsync()가 반환한 로컬 파일 URI
  */
 export async function analyzeFoodImage(imageUri: string) {
-    const filename = imageUri.split('/').pop() ?? 'photo.jpg';
-    const extMatch = /\.(\w+)$/.exec(filename);
-    const ext = extMatch ? extMatch[1].toLowerCase() : 'jpg';
-    const mimeType = ext === 'png' ? 'image/png' : 'image/jpeg';
-
     const formData = new FormData();
-    // React Native FormData 파일 업로드 규약: { uri, name, type }
-    formData.append('image', {
-        uri: imageUri,
-        name: filename,
-        type: mimeType,
-    } as any);
+    if (Platform.OS === 'web') {
+        // Camera data URLs and gallery blob URLs must become real multipart bytes.
+        const image = await fetch(imageUri);
+        if (!image.ok) throw new Error('Could not read the selected image.');
+        const blob = await image.blob();
+        const extension = blob.type === 'image/png' ? 'png' : blob.type === 'image/webp' ? 'webp' : 'jpg';
+        formData.append('image', blob, `photo.${extension}`);
+    } else {
+        const filename = imageUri.split('/').pop() ?? 'photo.jpg';
+        const ext = /\.(\w+)$/.exec(filename)?.[1]?.toLowerCase();
+        formData.append('image', {
+            uri: imageUri,
+            name: filename,
+            type: ext === 'png' ? 'image/png' : 'image/jpeg',
+        } as any);
+    }
 
     return requestJson<FoodAnalysisResult>('/api/v1/menus/analyze-image', {
         method: 'POST',

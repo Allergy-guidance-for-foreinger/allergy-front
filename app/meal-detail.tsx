@@ -1,5 +1,6 @@
+import { Alert } from '@/lib/alert';
 import { useLocalSearchParams } from 'expo-router';
-import { Alert, Text, TouchableOpacity, View, ScrollView } from 'react-native';
+import { Text, TouchableOpacity, View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';

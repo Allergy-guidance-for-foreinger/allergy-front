@@ -1,4 +1,4 @@
-import * as SecureStore from 'expo-secure-store';
+import { tokenStorage } from '@/lib/token-storage';
 import { refreshAccessToken } from '@/api/auth';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? '';
@@ -28,7 +28,7 @@ export async function authedFetch(
     init?: RequestInit,
     isRetry = false
 ): Promise<Response> {
-    const accessToken = await SecureStore.getItemAsync('accessToken');
+    const accessToken = await tokenStorage.getItem('accessToken');
 
     if (!accessToken) {
         onAuthExpired?.();

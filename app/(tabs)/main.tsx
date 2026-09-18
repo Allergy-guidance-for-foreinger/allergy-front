@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import PagerView, {
     type PagerViewOnPageScrollEventData,
     type PagerViewOnPageSelectedEventData,
-} from 'react-native-pager-view';
+} from '@/components/pager-view';
 import '../global.css';
 import { RiskIndicator } from '@/components/ui/risk-indicator';
 import { SpicyLevel } from '@/components/ui/spicy-level';
